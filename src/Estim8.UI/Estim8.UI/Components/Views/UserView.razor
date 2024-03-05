@@ -1,0 +1,52 @@
+﻿@using Estim8.UI.Services
+@using Estim8.UI.Services.Users
+
+<style>
+    .dot-online {
+        height: 25px;
+        width: 25px;
+        background-color: green;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .dot-offline {
+        height: 25px;
+        width: 25px;
+        background-color: gray;
+        border-radius: 50%;
+        display: inline-block;
+    }
+</style>
+<h3>@(User?.Name) 
+    @if(User?.IsOnline is true)
+    {
+        <span class="dot-online"/>
+    }
+    else
+    {
+        <span class="dot-offline"/>
+    }
+</h3>
+
+@inject IUserCollection UserCollection;
+
+@code {
+    [Parameter]
+    public UserId? UserId { get; set; }
+
+    public User? User { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (UserId is null) return;
+        User = UserCollection.GetOrCreateUser(UserId);
+        User.PropertyChanged += User_PropertyChanged;
+        base.OnInitialized();
+    }
+
+    private async void User_PropertyChanged(object? sender, EventArgs e)
+    {
+        await InvokeAsync(this.StateHasChanged);
+    }
+}

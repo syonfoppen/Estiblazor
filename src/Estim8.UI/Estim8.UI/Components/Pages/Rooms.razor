@@ -1,0 +1,121 @@
+﻿@page "/Rooms/{Name}"
+
+@using Estim8.UI.Services
+@using Estim8.UI.Services.Rooms
+@using Estim8.UI.Services.Users
+@using System.ComponentModel
+@using Estim8.UI.Components.Pages
+@using Estim8.UI.Components
+@using Estim8.UI.Components.Views
+
+@rendermode InteractiveServer
+
+@inject IRoomCollection RoomCollection;
+@inject IUserCollection UserCollection;
+@inject IUserProvider userProvider;
+@inject IHttpContextAccessor hca;
+@inject IsOnlineThingy thingy;
+
+<style>
+    table, th, td {
+        border: 1px solid white;
+        border-collapse: collapse;
+        border-top: none;
+        border-bottom: none;
+    }
+</style>
+<div class="estimate-wrapper">
+
+    <h2>@Room.Name</h2>
+
+    @for (int i = 0; i < Room.EstimationStages.Count; i++)
+    {
+        <EstimationView EstimationRoom="@Room.Id.Name" EstimationIndex="@i"/>
+    }
+
+    <div class="buttons">
+        <a class="button reset" @onclick="OnReset">RESET</a>
+        <a class="button reveal" @onclick="OnReveal">REVEAL</a>
+    </div>
+
+    <div class="results">
+        <table>
+            <tr>
+                <th>
+                    <h2>User</h2>
+                </th>
+
+                @foreach (var stage in Room.EstimationStages)
+                {
+
+                    <th>
+                        <h2 style="padding: 25px 50px 75px 100px;">
+                            @stage.Name
+                        </h2>
+                    </th>
+                }
+            </tr>
+            @foreach (var user in Room.Users)
+            {
+                <UserChoicesView RoomName="@Room.Name" UserId="@user.Id" />
+            }
+        </table>
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string Name { get; set; }
+
+    public RoomViewModel Room { get; set; }
+
+    public User? User { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.Room = RoomCollection.GetOrCreateRoom(Name);
+        Room.PropertyChanged += Room_PropertyChanged;
+        Room.Users.CollectionChanged += Room_PropertyChanged;
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (User is not null) return;
+        this.User = await userProvider.GetUserAsync();
+        Room.AddUser(User);
+        await thingy.SetAsync();
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async void Room_PropertyChanged(object? sender, EventArgs a)
+    {
+        await base.InvokeAsync(this.StateHasChanged);
+    }
+
+    public async void OnReset()
+    {
+        foreach (var stage in Room.EstimationStages)
+        {
+            stage.Reset();
+        }
+        await base.InvokeAsync(this.StateHasChanged);
+    }
+
+    public async void OnReveal()
+    {
+        foreach (var stage in Room.EstimationStages)
+        {
+            stage.Reveal();
+        }
+        await base.InvokeAsync(this.StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Room.PropertyChanged -= Room_PropertyChanged;
+        Room.RemoveUser(User);
+    }
+}

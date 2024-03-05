@@ -1,0 +1,60 @@
+﻿@using Estim8.UI.Services
+@using Estim8.UI.Services.Rooms
+@using Estim8.UI.Services.Users
+
+@rendermode InteractiveServer
+
+@inject IRoomCollection RoomCollection;
+@implements IDisposable
+
+<tr>
+    <td>
+        <UserView UserId="@UserId" />
+    </td>
+
+    @foreach (var stage in Room.EstimationStages)
+    {
+        var choice = stage.GetChoice(UserId);
+        var text = choice is null ? "..." : (stage.IsRevealed ? choice : "👁");
+        <td>
+            <div class="result">
+                <div class="number">
+                    @text
+                </div>
+            </div>
+        </td>
+    }
+
+</tr>
+@code {
+    [Parameter]
+    public UserId UserId { get; set; }
+
+    [Parameter]
+    public string RoomName { get; set; }
+
+    public RoomViewModel Room { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Room = RoomCollection.GetOrCreateRoom(RoomName);
+        foreach(var stage in Room.EstimationStages)
+        {
+            stage.ChoiceChanged += OnChoiceChanged;
+        }
+        base.OnInitialized();
+    }
+
+    public async void OnChoiceChanged(object? sender, ChoiceChangedEventArgs e)
+    {
+        if (e.UserId == UserId)
+        {
+            await InvokeAsync(this.StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        
+    }
+}
