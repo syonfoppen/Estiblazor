@@ -39,6 +39,14 @@ namespace Estim8.UI.Services.Users
             await localStorageService.SetItemAsync("userid", userId);
         }
 
+        public async Task LogoutAsync()
+        {
+            if (cachedUser is null) return;
+            cachedUser.SetRoom(null);
+            cachedUser = null;
+            await localStorageService.RemoveItemAsync("userid");
+        }
+
         public async Task<User?> GetUserAsync()
         {
             if (cachedUser is not null)
@@ -48,7 +56,8 @@ namespace Estim8.UI.Services.Users
 
             if (await TryGetFromLocalStorage() is { } localUserId)
             {
-                return userCollection.GetOrCreateUser(localUserId);
+                cachedUser = userCollection.GetOrCreateUser(localUserId);
+                return cachedUser; 
             }
 
             return null;
