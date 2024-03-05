@@ -80,7 +80,7 @@
         this.User = await userProvider.GetUserAsync();
         if (User is null)
         {
-            nav.NavigateTo("/");
+            nav.NavigateTo($"?RoomName={Name}");
             return;
         }
         User.SetRoom(Room);
