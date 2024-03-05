@@ -12,7 +12,9 @@ namespace Estim8.UI.Services.Users
         private string name = string.Empty;
         public string Name { get => name; set => PropertyChange(ref name, value); }
 
-        public RoomId DefaultRoom { get; set; } = new RoomId("default");
+        private RoomViewModel? currentRoom;
+
+        public RoomViewModel? CurrentRoom { get => currentRoom; private set => PropertyChange(ref currentRoom, value); }
 
         private int onlineCounter = 0;
 
@@ -36,5 +38,11 @@ namespace Estim8.UI.Services.Users
             }
         }
 
+        public void SetRoom(RoomViewModel? room)
+        {
+            CurrentRoom?.RemoveUser(this);
+            CurrentRoom = room;
+            CurrentRoom?.AddUser(this);
+        }
     }
 }

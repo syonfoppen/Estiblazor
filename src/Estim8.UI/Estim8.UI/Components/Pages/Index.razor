@@ -1,28 +1,43 @@
 ﻿@page "/"
+@using Estim8.UI.Services.Users
 @inject NavigationManager nav
+@inject IUserProvider userProvider
 
 @rendermode InteractiveServer
 
 <h3>User Name:</h3>
-<input id="inputuser" type="text" placeholder="room name" class="search" onkeydown="s(this)" />
+<InputText @bind-Value=UserName class="search" onkeydown=s/>
 
 <h3>Enter room name:</h3>
+<InputText @bind-Value=RoomName id="inputroom" class="search" @onkeydown=KeyDownInputRoom />
 
-<input id="inputroom" type="text" placeholder="room name" class="search" onkeydown="search(this)" />
 
 <script>
 
-    function s(ele) 
+    function s(ele)     
     {
         if (event.key === 'Enter') {
             document.getElementById("inputroom").focus();
         }
     }
 
-    function search(ele) {
-        if (event.key === 'Enter') {
-            var username = document.getElementById("inputuser").value;
-            window.location.href = 'Rooms/' + ele.value + "?UserName=" + username;
+</script>
+
+@code{
+
+    public string? UserName { get; set; }
+
+    public string? RoomName { get; set; }
+
+    void KeyDownInputRoom(KeyboardEventArgs e)
+    {
+        if (UserName is null || RoomName is null) return;
+
+        userProvider.InitUser(new UserId(UserName));
+        if(e.Key == "Enter")
+        {
+            nav.NavigateTo($"/Rooms/{RoomName}");
         }
     }
-</script>
+
+}

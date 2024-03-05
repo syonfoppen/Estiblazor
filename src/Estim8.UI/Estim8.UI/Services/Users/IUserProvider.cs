@@ -2,7 +2,8 @@
 {
     public interface IUserProvider
     {
-        Task<User> GetUserAsync();
+        Task<User?> GetUserAsync();
+        Task InitUser(UserId userId);
     }
 
 }

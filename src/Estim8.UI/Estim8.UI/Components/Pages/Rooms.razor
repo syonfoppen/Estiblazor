@@ -15,6 +15,7 @@
 @inject IUserProvider userProvider;
 @inject IHttpContextAccessor hca;
 @inject IsOnlineThingy thingy;
+@inject NavigationManager nav;
 
 <style>
     table, th, td {
@@ -30,7 +31,7 @@
 
     @for (int i = 0; i < Room.EstimationStages.Count; i++)
     {
-        <EstimationView EstimationRoom="@Room.Id.Name" EstimationIndex="@i"/>
+        <EstimationView EstimationRoom="@Room.Id.Name" EstimationIndex="@i" />
     }
 
     <div class="buttons">
@@ -85,7 +86,12 @@
     {
         if (User is not null) return;
         this.User = await userProvider.GetUserAsync();
-        Room.AddUser(User);
+        if (User is null)
+        {
+            nav.NavigateTo("/");
+            return;
+        }
+        User.SetRoom(Room);
         await thingy.SetAsync();
         await base.OnAfterRenderAsync(firstRender);
     }
