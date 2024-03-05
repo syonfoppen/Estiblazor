@@ -21,12 +21,16 @@
             }
             else
             {
-                <InputText @bind-Value=RoomName id="inputroom" class="form-control" placeholder="Room Code" />
-
                 @if (ShowUsernameField)
                 {
                     <InputText @bind-Value=UserName class="form-control" onkeydown=s placeholder="Username" />
                 }
+                else
+                {
+                    <h4>Logged in as @UserName</h4>
+                }
+
+                <InputText @bind-Value=RoomName id="inputroom" class="form-control" placeholder="Room Code" />
             }
 
             
@@ -70,6 +74,7 @@
         var user = await userProvider.GetUserAsync();
         if (user is not null)
         {
+            UserName = user.Name;
             ShowUsernameField = false;
         }
 
