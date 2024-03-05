@@ -1,29 +1,33 @@
-body{
+body {
     background-color: #404258;
     margin: 50px;
     display: flex;
     color: white;
-    height: 90vh;
+    height: 100%;
+    font-family: "Roboto Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+    padding: 20px;
 }
 
-a{
+a {
     text-decoration: none;
     color: white;
 }
 
-.estimate-wrapper{
+.estimate-wrapper {
     background-color: #6b728e;
     border-radius: 20px;
     flex: 1;
     padding: 50px;
 
-    .estimate-options{
+    .estimate-options {
         display: flex;
-        gap: 20px;
-        padding: 0px 20px 0px 20px;
+        gap: 50px;
+        padding: 0px 20px 50px 20px;
         flex-wrap: wrap;
 
-        a{
+        a {
             flex: 1;
             color: white;
             font-size: 4rem;
@@ -31,59 +35,82 @@ a{
             justify-content: center;
             align-items: stretch;
             display: flex;
-            padding: 100px 30px 100px 30px;
+            padding: 50px 30px 50px 30px;
             background-color: #404258;
             border-radius: 20px;
-            max-width: 100px;
+            max-width: 200px;
         }
-        a:hover{
+
+        a:hover {
             background-color: #535569;
-            transform: scale(1.1); 
+            transform: scale(1.1);
         }
     }
-    .results{
-        display: flex;
-        gap: 20px;
-        padding: 0px 20px 0px 20px;
-        flex-wrap: wrap;
-        .result{
+
+    .results {
+
+        .flex_headers, .flex_row {
             display: flex;
-            flex-direction: column;
+            gap: 20px;
+        }
+
+        .flex_col {
+            justify-content: center;
+            flex: 1;
+        }
+
+        .user_result {
+            padding: 20px;
+            display: flex;
             justify-content: center;
             align-items: center;
-            .number{
-                flex: 1;
-                font-size: 2rem;
-                flex-grow: 1;
-                padding: 30px 20px 30px 20px;
-                background-color: #404258;
-                border-radius: 10px;
-            }
-            .image{
-                margin-top: 10px;
-                border-radius: 100%;
+            background-color: #404258;
+            border-radius: 20px;
+            margin: 20px 0px 20px 0px;
+        }
 
-            }
+        .user_name {
+            display: flex;
+            align-items: center;
+            margin: 20px 0px 20px 0px;
+        }
+
+        .stage {
+            display: flex;
+            text-transform: uppercase;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .user_online {
+            margin: 10px;
         }
     }
-    .buttons{
+
+    .buttons {
         display: flex;
         padding: 50px 20px 0px 20px;
         gap: 20px;
-        .button{
+        margin-bottom: 50px;
+
+        a {
+            color: white;
+        }
+
+        .button {
             font-size: 2rem;
             padding: 30px 40px 30px 40px;
             background-color: #404258;
             border-radius: 10px;
         }
-        
-        .reveal{
+
+        .reveal {
             background-color: #554994;
         }
 
-        .button:hover{
+        .button:hover {
             background-color: #535569;
-            transform: scale(1.1); 
+            transform: scale(1.1);
         }
     }
 }

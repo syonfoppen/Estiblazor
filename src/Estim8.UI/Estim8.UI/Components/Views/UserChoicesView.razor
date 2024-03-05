@@ -8,25 +8,22 @@
 @inject IRoomCollection RoomCollection;
 @implements IDisposable
 
-<tr>
-    <td>
+<div class="flex_row">
+    <div class="flex_col user_name">
         <UserView UserId="@UserId" />
-    </td>
-
+    </div>
+    
     @foreach (var stage in Room.EstimationStages)
     {
         var choice = stage.GetChoice(UserId);
         var text = choice is null ? "..." : (stage.IsRevealed ? choice : "👁");
-        <td>
-            <div class="result">
-                <div class="number">
-                    @text
-                </div>
-            </div>
-        </td>
+        <div class="flex_col user_result">
+            <h3>@text</h3>
+        </div>
     }
 
-</tr>
+</div>
+
 @code {
     [Parameter]
     public UserId UserId { get; set; }

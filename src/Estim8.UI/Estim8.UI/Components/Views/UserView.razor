@@ -18,16 +18,19 @@
         display: inline-block;
     }
 </style>
-<h3>@(User?.Name) 
-    @if(User?.IsOnline is true)
+<h3>@(User?.Name)</h3>
+<div class="user_online">
+    @if (User?.IsOnline is true)
     {
-        <span class="dot-online"/>
+        <span class="dot-online" />
     }
     else
     {
-        <span class="dot-offline"/>
+        <span class="dot-offline" />
     }
-</h3>
+</div>
+
+
 
 @inject IUserCollection UserCollection;
 

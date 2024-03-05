@@ -27,40 +27,37 @@
 </style>
 <div class="estimate-wrapper">
 
-    <h2>@Room.Name</h2>
+    <h2>Room: @Room.Name</h2>
 
     @for (int i = 0; i < Room.EstimationStages.Count; i++)
     {
         <EstimationView EstimationRoom="@Room.Id.Name" EstimationIndex="@i" />
     }
 
+
     <div class="buttons">
         <a class="button reset" @onclick="OnReset">RESET</a>
         <a class="button reveal" @onclick="OnReveal">REVEAL</a>
     </div>
 
+
     <div class="results">
-        <table>
-            <tr>
-                <th>
-                    <h2>User</h2>
-                </th>
+        <div class="flex_headers">
+            <div class="flex_col"></div>
+            @foreach (var stage in Room.EstimationStages)
+            {
+                <div class="flex_col stage"><h3>@stage.Name</h3></div>
+            }
+        </div>
 
-                @foreach (var stage in Room.EstimationStages)
-                {
 
-                    <th>
-                        <h2 style="padding: 25px 50px 75px 100px;">
-                            @stage.Name
-                        </h2>
-                    </th>
-                }
-            </tr>
             @foreach (var user in Room.Users)
             {
                 <UserChoicesView RoomName="@Room.Name" UserId="@user.Id" />
             }
-        </table>
+
+
+
     </div>
 </div>
 
