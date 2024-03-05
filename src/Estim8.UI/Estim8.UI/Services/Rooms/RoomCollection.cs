@@ -27,21 +27,21 @@ namespace Estim8.UI.Services.Rooms
                 vm.EstimationStages.Add(new EstimationStage
                 {
                     Name = "effort",
-                    AvailableChoices = ["0.5", "1", "2", "3", "5", "8", "13", "20", "∞"],
+                    AvailableChoices = ["0.5", "1", "2", "3", "5", "8", "13", "20", "<i class=\"fa-solid fa-infinity\"></i>"],
                     IsRevealed = false,
                     UserChoices = [],
                 });
                 vm.EstimationStages.Add(new EstimationStage
                 {
                     Name = "complexity",
-                    AvailableChoices = ["S", "M", "L", "∞"],
+                    AvailableChoices = ["S", "M", "L", "<i class=\"fa-solid fa-infinity\"></i>"],
                     IsRevealed = false,
                     UserChoices = []
                 });
                 vm.EstimationStages.Add(new EstimationStage
                 {
                     Name = "Like",
-                    AvailableChoices = ["👍", "👎"],
+                    AvailableChoices = ["<i class=\"fa-solid fa-thumbs-up\"></i>", "<i class=\"fa-solid fa-thumbs-down\"></i>"],
                     IsRevealed = false,
                     UserChoices = []
 

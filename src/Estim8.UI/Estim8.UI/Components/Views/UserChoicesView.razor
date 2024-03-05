@@ -16,9 +16,9 @@
     @foreach (var stage in Room.EstimationStages)
     {
         var choice = stage.GetChoice(UserId);
-        var text = choice is null ? "..." : (stage.IsRevealed ? choice : "👁");
+        var text = choice is null ? "..." : (stage.IsRevealed ? choice : "<i class=\"fa-solid fa-eye\"></i>");
         <div class="flex_col user_result">
-            <h3>@text</h3>
+            <h3>@((MarkupString)text)</h3>
         </div>
     }
 
