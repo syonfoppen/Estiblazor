@@ -29,7 +29,17 @@ namespace Estim8.UI.Services.Users
             }
         }
 
-        public async Task<User> GetUserAsync()
+        public async Task InitUser(UserId userId)
+        {
+            if(cachedUser?.Id == userId)
+            {
+                return;
+            }
+            this.cachedUser = userCollection.GetOrCreateUser(userId);
+            await localStorageService.SetItemAsync("userid", userId);
+        }
+
+        public async Task<User?> GetUserAsync()
         {
             if (cachedUser is not null)
             {
@@ -41,11 +51,7 @@ namespace Estim8.UI.Services.Users
                 return userCollection.GetOrCreateUser(localUserId);
             }
 
-            var id = new UserId("Bob jansen");
-            this.cachedUser = userCollection.GetOrCreateUser(id);
-            await localStorageService.SetItemAsync("userid", id);
-           
-            return await Task.FromResult(cachedUser);
+            return null;
         }
 
         public void Dispose()
