@@ -1,9 +1,13 @@
 ﻿@page "/"
 @using Estim8.UI.Services.Users
+@using Blazored.LocalStorage
 @inject NavigationManager nav
 @inject IUserProvider userProvider
 
+@inject ILocalStorageService localStorage
+
 @rendermode InteractiveServer
+
 
 <div class="login_wrapper">
     <div class="login_screen">
@@ -13,10 +17,32 @@
         </div>
 
         <div class="form-group">
-            <InputText @bind-Value=RoomName id="inputroom" class="form-control" placeholder="Room Code" />
-            <InputText @bind-Value=UserName class="form-control" onkeydown=s placeholder="Username" />
+            @if (Loading)
+            {
+                <div class="loader"></div>
+            }
+            else
+            {
+                <InputText @bind-Value=RoomName id="inputroom" class="form-control" placeholder="Room Code" />
+
+                @if (ShowUsernameField)
+                {
+                    <InputText @bind-Value=UserName class="form-control" onkeydown=s placeholder="Username" />
+                }
+            }
+
+            
         </div>
-        <a class="button login" @onclick="Login">GO ESTIM8</a>
+        <div class="buttons">
+            <a class="button login" @onclick="Login">GO ESTIM8</a>
+
+            @if (!ShowUsernameField)
+            {
+                <a class="button login" @onclick="Logout">Logout</a>
+            }
+            
+        </div>
+
     </div>
 
 </div>
@@ -28,15 +54,48 @@
 
     public string? RoomName { get; set; }
 
+    public bool Loading { get; set; }
+
+    public bool ShowUsernameField { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ShowUsernameField = true;
+        Loading = true;
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var user = await localStorage.GetItemAsync<UserId>("userid");
+        if (user != null)
+        {
+            ShowUsernameField = false;
+        }
+
+        Loading = false;
+        StateHasChanged();
+    }
+
     void Login()
     {
-        if (UserName is null || RoomName is null)
+        if ((ShowUsernameField && UserName is null) || RoomName is null)
         {
             Message = "Please fill in a username and a room code!";
             return;
         }
+        if (ShowUsernameField)
+        {
+            userProvider.InitUser(new UserId(UserName));
+        }
 
-        userProvider.InitUser(new UserId(UserName));
         nav.NavigateTo($"/Rooms/{RoomName}");
     }
+
+    async void Logout()
+    {
+        await localStorage.RemoveItemAsync("userid");
+        nav.NavigateTo(nav.Uri, true);
+    }
+
 }
