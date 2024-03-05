@@ -78,7 +78,7 @@ a {
 .estimate-wrapper .results .user_online {
   margin: 10px;
 }
-.estimate-wrapper .buttons {
+.estimate-wrapper .buttons .buttons {
   display: flex;
   padding: 50px 20px 0px 20px;
   gap: 20px;
@@ -117,7 +117,12 @@ a {
   border-radius: 20px;
   padding: 50px;
 }
-.login_wrapper .login_screen h1 {
+.login_wrapper .login_screen .buttons {
+  gap: 20px;
+  display: flex;
+  justify-content: center;
+}
+.login_wrapper .login_screen h1, .login_wrapper .login_screen h4 {
   text-align: center;
   text-transform: uppercase;
 }
