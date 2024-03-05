@@ -1,6 +1,7 @@
 ﻿@using Estim8.UI.Services
 @using Estim8.UI.Services.Rooms
 @using Estim8.UI.Services.Users
+@using System.ComponentModel
 
 @rendermode InteractiveServer
 
@@ -38,9 +39,10 @@
     protected override void OnInitialized()
     {
         Room = RoomCollection.GetOrCreateRoom(RoomName);
-        foreach(var stage in Room.EstimationStages)
+        foreach (var stage in Room.EstimationStages)
         {
             stage.ChoiceChanged += OnChoiceChanged;
+            stage.PropertyChanged += Stage_PropertyChanged;
         }
         base.OnInitialized();
     }
@@ -53,8 +55,20 @@
         }
     }
 
+    public async void Stage_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(EstimationStage.IsRevealed))
+        {
+            await InvokeAsync(this.StateHasChanged);
+        }
+    }
+
     public void Dispose()
     {
-        
+        foreach (var stage in Room.EstimationStages)
+        {
+            stage.ChoiceChanged -= OnChoiceChanged;
+            stage.PropertyChanged -= Stage_PropertyChanged;
+        }
     }
 }
