@@ -56,7 +56,8 @@ namespace Estim8.UI.Services.Users
 
             if (await TryGetFromLocalStorage() is { } localUserId)
             {
-                return userCollection.GetOrCreateUser(localUserId);
+                cachedUser = userCollection.GetOrCreateUser(localUserId);
+                return cachedUser; 
             }
 
             return null;
