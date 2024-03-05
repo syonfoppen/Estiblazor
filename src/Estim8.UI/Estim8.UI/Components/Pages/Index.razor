@@ -1,0 +1,28 @@
+﻿@page "/"
+@inject NavigationManager nav
+
+@rendermode InteractiveServer
+
+<h3>User Name:</h3>
+<input id="inputuser" type="text" placeholder="room name" class="search" onkeydown="s(this)" />
+
+<h3>Enter room name:</h3>
+
+<input id="inputroom" type="text" placeholder="room name" class="search" onkeydown="search(this)" />
+
+<script>
+
+    function s(ele) 
+    {
+        if (event.key === 'Enter') {
+            document.getElementById("inputroom").focus();
+        }
+    }
+
+    function search(ele) {
+        if (event.key === 'Enter') {
+            var username = document.getElementById("inputuser").value;
+            window.location.href = 'Rooms/' + ele.value + "?UserName=" + username;
+        }
+    }
+</script>
