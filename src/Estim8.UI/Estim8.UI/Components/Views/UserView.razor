@@ -1,23 +1,6 @@
 ﻿@using Estim8.UI.Services
 @using Estim8.UI.Services.Users
 
-<style>
-    .dot-online {
-        height: 25px;
-        width: 25px;
-        background-color: green;
-        border-radius: 50%;
-        display: inline-block;
-    }
-
-    .dot-offline {
-        height: 25px;
-        width: 25px;
-        background-color: gray;
-        border-radius: 50%;
-        display: inline-block;
-    }
-</style>
 <h3>@(User?.Name)</h3>
 <div class="user_online">
     @if (User?.IsOnline is true)

@@ -21,6 +21,9 @@ a {
   flex: 1;
   padding: 50px;
 }
+.estimate-wrapper .room_title {
+  margin-bottom: 50px;
+}
 .estimate-wrapper .estimate-options {
   display: flex;
   gap: 50px;
@@ -84,16 +87,64 @@ a {
 .estimate-wrapper .buttons a {
   color: white;
 }
-.estimate-wrapper .buttons .button {
+.estimate-wrapper .buttons .reveal {
+  background-color: #554994;
+}
+
+.button {
   font-size: 2rem;
   padding: 30px 40px 30px 40px;
   background-color: #404258;
   border-radius: 10px;
 }
-.estimate-wrapper .buttons .reveal {
-  background-color: #554994;
-}
-.estimate-wrapper .buttons .button:hover {
+
+.button:hover {
   background-color: #535569;
   transform: scale(1.1);
+}
+
+.login_wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 80vh;
+}
+.login_wrapper .login_screen {
+  display: flex;
+  flex-direction: column;
+  background-color: #6b728e;
+  border-radius: 20px;
+  padding: 50px;
+}
+.login_wrapper .login_screen h1 {
+  text-align: center;
+  text-transform: uppercase;
+}
+.login_wrapper .login_screen .form-control {
+  margin: 20px 0px 20px 0px;
+}
+.login_wrapper .login_screen .login {
+  background-color: #554994;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.dot-online {
+  height: 25px;
+  width: 25px;
+  background-color: green;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-offline {
+  height: 25px;
+  width: 25px;
+  background-color: gray;
+  border-radius: 50%;
+  display: inline-block;
 }

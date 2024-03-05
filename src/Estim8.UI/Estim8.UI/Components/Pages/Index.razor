@@ -5,11 +5,19 @@
 
 @rendermode InteractiveServer
 
-<h3>User Name:</h3>
-<InputText @bind-Value=UserName class="search" onkeydown=s/>
+<div class="login_wrapper">
+    <div class="login_screen">
+        <h1>Estim8</h1>
+        <div class="form-group">
+            <InputText @bind-Value=RoomName id="inputroom" class="form-control" placeholder="Room Code" />
+            <InputText @bind-Value=UserName class="form-control" onkeydown=s placeholder="User Name" />
+        </div>
+        <a class="button login" @onclick="Login">GO ESTIM8</a>
+    </div>
 
-<h3>Enter room name:</h3>
-<InputText @bind-Value=RoomName id="inputroom" class="search" @onkeydown=KeyDownInputRoom />
+</div>
+
+
 
 
 <script>
@@ -29,15 +37,10 @@
 
     public string? RoomName { get; set; }
 
-    void KeyDownInputRoom(KeyboardEventArgs e)
+    void Login()
     {
         if (UserName is null || RoomName is null) return;
-
         userProvider.InitUser(new UserId(UserName));
-        if(e.Key == "Enter")
-        {
-            nav.NavigateTo($"/Rooms/{RoomName}");
-        }
+        nav.NavigateTo($"/Rooms/{RoomName}");
     }
-
 }

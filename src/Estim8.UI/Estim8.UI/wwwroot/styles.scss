@@ -16,6 +16,10 @@ a {
 }
 
 .estimate-wrapper {
+    .room_title{
+        margin-bottom: 50px;
+    }
+
     background-color: #6b728e;
     border-radius: 20px;
     flex: 1;
@@ -97,20 +101,72 @@ a {
             color: white;
         }
 
-        .button {
-            font-size: 2rem;
-            padding: 30px 40px 30px 40px;
-            background-color: #404258;
-            border-radius: 10px;
-        }
-
         .reveal {
             background-color: #554994;
         }
 
-        .button:hover {
-            background-color: #535569;
-            transform: scale(1.1);
+
+    }
+}
+
+.button {
+    font-size: 2rem;
+    padding: 30px 40px 30px 40px;
+    background-color: #404258;
+    border-radius: 10px;
+}
+
+.button:hover {
+    background-color: #535569;
+    transform: scale(1.1);
+}
+
+.login_wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 80vh;
+
+    .login_screen {
+        display: flex;
+        flex-direction: column;
+        background-color: #6b728e;
+        border-radius: 20px;
+        padding: 50px;
+
+        h1 {
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            margin: 20px 0px 20px 0px;
+        }
+
+        .login {
+            background-color: #554994;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.5rem;
+            color: white;
         }
     }
+}
+
+.dot-online {
+    height: 25px;
+    width: 25px;
+    background-color: green;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dot-offline {
+    height: 25px;
+    width: 25px;
+    background-color: gray;
+    border-radius: 50%;
+    display: inline-block;
 }

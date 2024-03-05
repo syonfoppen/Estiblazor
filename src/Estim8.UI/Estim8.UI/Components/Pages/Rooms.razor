@@ -17,17 +17,12 @@
 @inject IsOnlineThingy thingy;
 @inject NavigationManager nav;
 
-<style>
-    table, th, td {
-        border: 1px solid white;
-        border-collapse: collapse;
-        border-top: none;
-        border-bottom: none;
-    }
-</style>
 <div class="estimate-wrapper">
 
-    <h2>Room: @Room.Name</h2>
+    <div class="room_title">
+        <h1>Room: @Room.Name</h1>
+        <hr />
+    </div>
 
     @for (int i = 0; i < Room.EstimationStages.Count; i++)
     {
