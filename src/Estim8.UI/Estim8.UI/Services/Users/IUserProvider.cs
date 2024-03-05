@@ -4,6 +4,7 @@
     {
         Task<User?> GetUserAsync();
         Task InitUser(UserId userId);
+        Task LogoutAsync();
     }
 
 }

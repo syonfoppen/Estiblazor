@@ -4,8 +4,6 @@
 @inject NavigationManager nav
 @inject IUserProvider userProvider
 
-@inject ILocalStorageService localStorage
-
 @rendermode InteractiveServer
 
 
@@ -67,11 +65,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var user = await localStorage.GetItemAsync<UserId>("userid");
-        if (user != null)
+        if(userProvider.GetUserAsync() is not null)
         {
             ShowUsernameField = false;
-        }
+        } 
 
         Loading = false;
         StateHasChanged();
@@ -94,7 +91,7 @@
 
     async void Logout()
     {
-        await localStorage.RemoveItemAsync("userid");
+        await userProvider.LogoutAsync();
         nav.NavigateTo(nav.Uri, true);
     }
 
