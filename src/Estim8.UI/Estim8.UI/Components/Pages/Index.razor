@@ -65,7 +65,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(userProvider.GetUserAsync() is not null)
+        if(await userProvider.GetUserAsync() is not null)
         {
             ShowUsernameField = false;
         } 
