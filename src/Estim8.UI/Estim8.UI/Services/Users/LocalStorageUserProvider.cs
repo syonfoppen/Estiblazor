@@ -43,6 +43,7 @@ namespace Estim8.UI.Services.Users
         {
             if (cachedUser is null) return;
             cachedUser.SetRoom(null);
+            cachedUser = null;
             await localStorageService.RemoveItemAsync("userid");
         }
 
