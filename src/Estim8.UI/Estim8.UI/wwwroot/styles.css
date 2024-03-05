@@ -148,3 +148,7 @@ a {
   border-radius: 50%;
   display: inline-block;
 }
+
+.error_message {
+  color: #cd5c5c;
+}

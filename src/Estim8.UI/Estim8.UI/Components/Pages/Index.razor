@@ -8,9 +8,13 @@
 <div class="login_wrapper">
     <div class="login_screen">
         <h1>Estim8</h1>
+        <div class="error_message">
+            @Message
+        </div>
+
         <div class="form-group">
             <InputText @bind-Value=RoomName id="inputroom" class="form-control" placeholder="Room Code" />
-            <InputText @bind-Value=UserName class="form-control" onkeydown=s placeholder="User Name" />
+            <InputText @bind-Value=UserName class="form-control" onkeydown=s placeholder="Username" />
         </div>
         <a class="button login" @onclick="Login">GO ESTIM8</a>
     </div>
@@ -32,6 +36,7 @@
 </script>
 
 @code{
+    public string? Message { get; set; }
 
     public string? UserName { get; set; }
 
@@ -39,7 +44,12 @@
 
     void Login()
     {
-        if (UserName is null || RoomName is null) return;
+        if (UserName is null || RoomName is null)
+        {
+            Message = "Please fill in a username and a room code!";
+            return;
+        }
+
         userProvider.InitUser(new UserId(UserName));
         nav.NavigateTo($"/Rooms/{RoomName}");
     }
