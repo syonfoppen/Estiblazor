@@ -1,0 +1,119 @@
+﻿@page "/Rooms/{Name}"
+
+@using Estiblazor.UI.Services
+@using Estiblazor.UI.Services.Rooms
+@using Estiblazor.UI.Services.Users
+@using System.ComponentModel
+@using Estiblazor.UI.Components.Pages
+@using Estiblazor.UI.Components
+@using Estiblazor.UI.Components.Views
+
+@rendermode InteractiveServer
+
+@inject IRoomCollection RoomCollection;
+@inject IUserCollection UserCollection;
+@inject IUserProvider userProvider;
+@inject IHttpContextAccessor hca;
+@inject IsOnlineThingy thingy;
+@inject NavigationManager nav;
+
+<div class="estimate-wrapper">
+
+    <div class="room_title">
+        <h1>Room: @Room.Name</h1>
+        <hr />
+    </div>
+
+    @for (int i = 0; i < Room.EstimationStages.Count; i++)
+    {
+        <EstimationView EstimationRoom="@Room.Id.Name" EstimationIndex="@i" />
+    }
+
+
+    <div class="buttons">
+        <a class="button reset" @onclick="OnReset">RESET</a>
+        <a class="button reveal" @onclick="OnReveal">REVEAL</a>
+    </div>
+
+
+    <div class="results">
+        <div class="flex_headers">
+            <div class="flex_col"></div>
+            @foreach (var stage in Room.EstimationStages)
+            {
+                <div class="flex_col stage"><h3>@stage.Name</h3></div>
+            }
+        </div>
+
+
+            @foreach (var user in Room.Users)
+            {
+                <UserChoicesView RoomName="@Room.Name" UserId="@user.Id" />
+            }
+
+
+
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string Name { get; set; }
+
+    public RoomViewModel Room { get; set; }
+
+    public User? User { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.Room = RoomCollection.GetOrCreateRoom(Name);
+        Room.PropertyChanged += Room_PropertyChanged;
+        Room.Users.CollectionChanged += Room_PropertyChanged;
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (User is not null) return;
+        this.User = await userProvider.GetUserAsync();
+        if (User is null)
+        {
+            nav.NavigateTo($"?RoomName={Name}");
+            return;
+        }
+        User.SetRoom(Room);
+        await thingy.SetAsync();
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async void Room_PropertyChanged(object? sender, EventArgs a)
+    {
+        await base.InvokeAsync(this.StateHasChanged);
+    }
+
+    public async void OnReset()
+    {
+        foreach (var stage in Room.EstimationStages)
+        {
+            stage.Reset();
+        }
+        await base.InvokeAsync(this.StateHasChanged);
+    }
+
+    public async void OnReveal()
+    {
+        foreach (var stage in Room.EstimationStages)
+        {
+            stage.Reveal();
+        }
+        await base.InvokeAsync(this.StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Room.PropertyChanged -= Room_PropertyChanged;
+        Room.RemoveUser(User);
+    }
+}

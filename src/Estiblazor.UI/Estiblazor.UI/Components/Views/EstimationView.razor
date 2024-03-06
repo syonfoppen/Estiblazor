@@ -1,0 +1,91 @@
+﻿@using Estiblazor.UI.Services
+@using Estiblazor.UI.Services.Rooms
+@using Estiblazor.UI.Services.Users
+@using System.ComponentModel
+@rendermode InteractiveServer
+@inject IRoomCollection roomCollection
+@inject IUserProvider userProvider
+
+<h3>@(EstimationStage.Name)</h3>
+
+<div class="estimate-options">
+
+    @foreach (var choice in EstimationStage.AvailableChoices)
+    {
+        var isChosen = User is not null && EstimationStage.GetChoice(User.Id) == choice;
+
+        <a style="@(isChosen ? "border-style: solid; border-color: white" : "")"
+           @onclick=@(() => OnChoice(choice))>
+
+            <div 
+                class="estimate-option">
+                @((MarkupString)choice)               @if (isChosen)
+                {
+                   
+            }
+            </div>
+        </a>
+    }
+
+</div>
+
+@* <h4>Votes:</h4>
+<div class="results">
+    @foreach (var vote in EstimationStage.UserChoices)
+    {
+        <div class="result">
+            <div class="number">
+                @(EstimationStage.IsRevealed ? vote.Choice : "...")
+            </div>
+            <img class="image" src="./person.jpeg" alt="Avatar">
+        </div>
+    }
+</div> *@
+
+@code {
+    public EstimationStage EstimationStage { get; set; }
+
+    [Parameter]
+    public string EstimationRoom { get; set; }
+
+    [Parameter]
+    public int EstimationIndex { get; set; }
+
+    public User User { get; set; }
+
+    public void OnChoice(string choice)
+    {
+        if (EstimationStage.IsRevealed) return;
+        EstimationStage.SetChoice(User.Id, choice);
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
+
+    protected override void OnInitialized()
+    {
+        EstimationStage = roomCollection.GetExistingRoom(EstimationRoom)?.EstimationStages[EstimationIndex]!;
+        EstimationStage.PropertyChanged += AnythingChanged;
+        EstimationStage.UserChoices.CollectionChanged += AnythingChanged;
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        User = await userProvider.GetUserAsync();
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async void AnythingChanged(object? sender, EventArgs e)
+    {
+        await this.InvokeAsync(this.StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        EstimationStage.PropertyChanged -= AnythingChanged;
+        EstimationStage.UserChoices.CollectionChanged -= AnythingChanged;
+    }
+}

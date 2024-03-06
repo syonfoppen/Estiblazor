@@ -1,0 +1,38 @@
+﻿@using Estiblazor.UI.Services
+@using Estiblazor.UI.Services.Users
+
+<h3>@(User?.Name)</h3>
+<div class="user_online">
+    @if (User?.IsOnline is true)
+    {
+        <span class="dot-online" />
+    }
+    else
+    {
+        <span class="dot-offline" />
+    }
+</div>
+
+
+
+@inject IUserCollection UserCollection;
+
+@code {
+    [Parameter]
+    public UserId? UserId { get; set; }
+
+    public User? User { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (UserId is null) return;
+        User = UserCollection.GetOrCreateUser(UserId);
+        User.PropertyChanged += User_PropertyChanged;
+        base.OnInitialized();
+    }
+
+    private async void User_PropertyChanged(object? sender, EventArgs e)
+    {
+        await InvokeAsync(this.StateHasChanged);
+    }
+}
