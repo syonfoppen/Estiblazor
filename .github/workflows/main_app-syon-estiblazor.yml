@@ -23,6 +23,8 @@ jobs:
           include-prerelease: true
       - name: Move directory
         run: cd ./src
+      - name: get  directory
+        run: echo "$PWD"
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
