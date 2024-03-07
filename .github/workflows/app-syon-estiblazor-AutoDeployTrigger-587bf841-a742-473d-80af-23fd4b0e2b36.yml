@@ -40,7 +40,7 @@ jobs:
           registryPassword: ${{ secrets.APPSYONESTIBLAZOR_REGISTRY_PASSWORD }}
           containerAppName: app-syon-estiblazor
           resourceGroup: rg-syon-estiblazor
-          imageToBuild: registry-1.docker.io/syonfoppen02/estiblazorui:${{ github.sha }}
+          imageToBuild: registry-1.docker.io/syonfoppen02/estiblazorui:latest
           _buildArgumentsKey_: |
             _buildArgumentsValues_
 
