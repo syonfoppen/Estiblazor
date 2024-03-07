@@ -34,7 +34,7 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}/src/Estiblazor.UI/Estiblazor.UI 
+          appSourcePath: ${{ github.workspace }}/src
           registryUrl: registry-1.docker.io
           registryUsername: ${{ secrets.APPSYONESTIBLAZOR_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.APPSYONESTIBLAZOR_REGISTRY_PASSWORD }}
