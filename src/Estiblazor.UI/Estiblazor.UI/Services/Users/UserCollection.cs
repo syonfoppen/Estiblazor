@@ -1,46 +1,25 @@
 ﻿
+using Estiblazor.UI.Services.Collections;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Estiblazor.UI.Services.Users
 {
-    public class UserCollection(IMemoryCache memoryCache) : IUserCollection
+
+    public class UserCollection(IMemoryCache memoryCache, IOptions<MemoryCollectionOptions<User>> options)
+        : MemoryCollection<User, UserId>(memoryCache, options), IUserCollection
     {
-        private readonly List<UserId> userIds = new List<UserId>();
 
         public User GetOrCreateUser(UserId userId)
         {
-            return memoryCache.GetOrCreate(userId, cacheEntry =>
-            {
-                User value = new() { Id = userId, Name = userId.name };
-                cacheEntry
-                    .SetValue(value)
-                    .SetSlidingExpiration(TimeSpan.FromHours(2))
-                    .RegisterPostEvictionCallback(OnEvict);
-                userIds.Add(userId);
-                return value;
-            })!;
-        }
-
-        private void OnEvict(object key, object? value, EvictionReason reason, object? state)
-        {
-            if (key is UserId userId)
-            {
-                userIds.Remove(userId);
-            }
+            return GetOrCreate(userId, () => new User { Id = userId, Name = userId.name });
         }
 
         public User? GetUser(UserId userId)
         {
-            return memoryCache.Get(userId) as User;
-        }
-
-        public IEnumerable<User> GetUsers()
-        {
-            foreach (var userId in userIds)
-            {
-                yield return GetUser(userId)!;
-            }
+            return base.GetItem(userId);
         }
     }
-
 }
