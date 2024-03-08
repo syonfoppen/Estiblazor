@@ -175,3 +175,7 @@ a {
     transform: rotate(360deg);
   }
 }
+.create_room_wrapper {
+  display: flex;
+  gap: 20px;
+}
