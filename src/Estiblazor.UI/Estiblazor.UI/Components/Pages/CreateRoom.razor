@@ -3,11 +3,22 @@
 
 @using Estiblazor.UI.Services.Rooms
 @using System.Collections.ObjectModel
+@using Estiblazor.UI.Enums
+
+@inject IRoomTemplateService RoomTemplateService
 
 <div class="flex-wrapper">
     <div class="flex-header base">
         <h1>Room: </h1>
         <InputText @bind-Value="Room.Name" class="form-control" placeholder="Room Name" />
+
+        <InputSelect @bind-Value="selectedTemplate" @bind-Value:after="SetTemplate">
+            <option selected value="">Select a template</option>
+            @foreach (var template in Enum.GetValues(typeof(RoomTemplates)))
+            {
+                <option value="@template">@template?.ToString()?.Replace("_", " ")</option>
+            }
+        </InputSelect>
    </div>
     <div class="flex-middle">
         <div class="add-stage-wrapper base">
@@ -73,6 +84,8 @@
 
     public EstimationStage? selectedStage { get; set; }
 
+    public RoomTemplates? selectedTemplate { get; set; }
+
     protected override void OnInitialized()
     {
         Room = new RoomViewModel()
@@ -116,5 +129,16 @@
         {
             selectedStage.AvailableChoices.Remove(choice);
         }
+    }
+
+    public void SetTemplate()
+    {
+        if (selectedTemplate != null)
+        {
+            var stages = RoomTemplateService.GetRoomTemplate(selectedTemplate.Value);
+
+            Room.EstimationStages = new ObservableCollection<EstimationStage>(stages);
+        }
+        
     }
 }
