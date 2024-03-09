@@ -4,55 +4,74 @@
 @using Estiblazor.UI.Services.Rooms
 @using System.Collections.ObjectModel
 
+<div class="flex-wrapper">
+    <div class="flex-header base">
+        <h1>Room: </h1>
+        <InputText @bind-Value="Room.Name" class="form-control" placeholder="Room Name" />
+   </div>
+    <div class="flex-middle">
+        <div class="add-stage-wrapper base">
+            <div class="add-stage-overview">
+                <h2>Stages</h2>
+                <div class="stages">
+                    @foreach (var stage in Room.EstimationStages)
+                    {
+                        <div @onclick="() => SetSelectedStage(stage.Name)" class="stage @(stage.Name == selectedStage?.Name ? "selected" : "")">@stage.Name</div>
+                    }
+                </div>
+ 
+            </div>
 
-<div class="create_room_wrapper">
-    <div style="display: flex; flex-direction: column; gap: 20px">
-        <h3>CreateRoom</h3>
-        <div> <InputText @bind-Value="Room.Name" class="form-control" placeholder="Room Name" /> </div>
-        <div style="display: flex; flex-direction: column">
-            @foreach (var stage in Room.EstimationStages)
-            {
-                <div @onclick="() => SetSelectedStage(stage.Name)">@stage.Name</div>
-            }
-        </div>
-        <div> <InputText @bind-Value="NewStageName" class="form-control" placeholder="Stage name" /> </div>
-        <div> <button style="padding: 20px; background-color: blue;" @onclick="AddStage">Add</button> </div>
-
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 20px">
-        @if (!string.IsNullOrEmpty(SelectedStage))
-        {
-            <h3>@SelectedStage Choices</h3>
-            var stage = Room.EstimationStages.FirstOrDefault(s => s.Name == SelectedStage);
-
-            if (stage != null)
-            {
-                @foreach (var choice in stage.AvailableChoices)
+            <div class="add-stage-input">
+                <InputText @bind-Value="NewStageName" class="form-control" placeholder="Stage name" />
+                <a class="add-button" @onclick="AddStage">Add Stage</a>
+            </div>
+       </div>
+        <div class="choice-wrapper">
+            <div class="choice-overview base">
+                @if (selectedStage != null)
                 {
-                    <div>@choice </div>
+                    <h3>@selectedStage?.Name Choices</h3>
+                    var stage = Room.EstimationStages.FirstOrDefault(s => s.Name == selectedStage?.Name);
+
+                    <div class="choices">
+                        @if (stage != null)
+                        {
+                            @foreach (var choice in stage.AvailableChoices)
+                            {
+                                <div class="choice" @onclick="() => RemoveAvailableChoice(choice)">@((MarkupString)choice)</div>
+                            }
+                        }
+                    </div>
+
                 }
-            }
-            <div> <InputText @bind-Value="NewChoiceName" class="form-control" placeholder="Choice name" /> </div>
-            <div> <button style="padding: 20px; background-color: blue;" @onclick="AddAvailableChoice">Add</button> </div>
-        }
+                else
+                {
+                    <span>No stage selected</span>
+                }
+
+            </div>
+            <div class="choice-input base">
+                <div> <InputText @bind-Value="NewChoiceName" class="form-control" placeholder="Choice name" /> </div>
+                <div> <a class="add-button" @onclick="AddAvailableChoice">Add Choice</a> </div>
+            </div>
 
 
-    </div>
+        </div>
+   </div>
+
 </div>
-
-
 
 
 
 @code {
     public string? NewStageName { get; set; }
 
-    public string? SelectedStage { get; set; }
-
     public string? NewChoiceName { get; set; }
 
     public RoomViewModel? Room { get; set; }
+
+    public EstimationStage? selectedStage { get; set; }
 
     protected override void OnInitialized()
     {
@@ -69,6 +88,8 @@
         {
             var stage = new EstimationStage();
             stage.Name = NewStageName;
+            NewStageName = string.Empty;
+
             Room.EstimationStages.Add(stage);
             StateHasChanged();
         }
@@ -77,15 +98,23 @@
 
     public void SetSelectedStage(string stageName)
     {
-        SelectedStage = stageName;
+        selectedStage = Room.EstimationStages.FirstOrDefault(s => s.Name == stageName);
     }
 
     public void AddAvailableChoice()
     {
-        var stage = Room.EstimationStages.FirstOrDefault(s => s.Name == SelectedStage);
-        if (stage != null && !string.IsNullOrEmpty(NewChoiceName))
+        if (selectedStage != null && !string.IsNullOrEmpty(NewChoiceName))
         {
-            stage.AvailableChoices.Add(NewChoiceName);
+            selectedStage.AvailableChoices.Add(NewChoiceName);
+            NewChoiceName = string.Empty;
         }   
+    }
+
+    public void RemoveAvailableChoice(string choice)
+    {
+        if (selectedStage != null && !string.IsNullOrEmpty(choice))
+        {
+            selectedStage.AvailableChoices.Remove(choice);
+        }
     }
 }

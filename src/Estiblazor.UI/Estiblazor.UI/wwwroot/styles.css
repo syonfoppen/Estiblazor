@@ -175,7 +175,102 @@ a {
     transform: rotate(360deg);
   }
 }
-.create_room_wrapper {
+.base {
+  background-color: #6b728e;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.flex-wrapper {
+  justify-content: center;
+  width: 100%;
+  height: 80vh;
   display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+.flex-wrapper .flex-header {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.flex-wrapper .flex-middle {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+}
+.flex-wrapper .flex-middle .add-stage-wrapper {
+  flex-grow: 0;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  min-width: 300px;
+}
+.flex-wrapper .flex-middle .add-stage-wrapper .add-stage-overview {
+  margin: 20px;
+  flex-grow: 1;
+  height: 100%;
+}
+.flex-wrapper .flex-middle .add-stage-wrapper .add-stage-overview .stages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  max-height: 43vh;
+}
+.flex-wrapper .flex-middle .add-stage-wrapper .add-stage-overview .stages .stage {
+  text-align: center;
+  width: 100%;
+  background-color: #404258;
+  border-radius: 20px;
+  padding: 10px 0px 10px 0px;
+}
+.flex-wrapper .flex-middle .add-stage-wrapper .add-stage-overview .stages .selected {
+  background-color: #554994;
+}
+.flex-wrapper .flex-middle .add-stage-wrapper .add-stage-input {
+  margin: 20px;
+}
+.flex-wrapper .flex-middle .choice-wrapper {
+  flex-grow: 1;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+}
+.flex-wrapper .flex-middle .choice-wrapper .choice-overview {
+  flex-grow: 1;
+}
+.flex-wrapper .flex-middle .choice-wrapper .choice-overview .choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.flex-wrapper .flex-middle .choice-wrapper .choice-overview .choices .choice {
+  flex: 1;
+  color: white;
+  font-size: 2rem;
+  justify-content: center;
+  align-items: stretch;
+  display: flex;
+  padding: 30px 0px 30px 0px;
+  background-color: #404258;
+  border-radius: 20px;
+  max-width: 100px;
+  min-width: 100px;
+}
+.flex-wrapper .flex-middle .add-button {
+  display: inline-block;
+  padding: 5px 10px 5px 10px;
+  background-color: #554994;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 1.5rem;
+  margin-top: 20px;
+  color: white;
+}
+.flex-wrapper .flex-footer {
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
