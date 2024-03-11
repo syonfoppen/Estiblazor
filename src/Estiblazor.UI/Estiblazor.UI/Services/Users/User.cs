@@ -40,6 +40,7 @@ namespace Estiblazor.UI.Services.Users
 
         public void SetRoom(RoomViewModel? room)
         {
+            if (CurrentRoom == room) return;
             CurrentRoom?.RemoveUser(this);
             CurrentRoom = room;
             CurrentRoom?.AddUser(this);

@@ -48,10 +48,8 @@
 
             @foreach (var user in Room.Users)
             {
-                <UserChoicesView RoomName="@Room.Name" UserId="@user.Id" />
+                <UserChoicesView @key=@user.Id RoomName="@Room.Name" UserId="@user.Id" />
             }
-
-
 
     </div>
 </div>
@@ -114,6 +112,5 @@
     public void Dispose()
     {
         Room.PropertyChanged -= Room_PropertyChanged;
-        Room.RemoveUser(User);
     }
 }
