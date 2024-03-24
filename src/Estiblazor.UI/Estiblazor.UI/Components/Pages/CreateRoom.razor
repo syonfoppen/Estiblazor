@@ -5,12 +5,11 @@
 @using System.Collections.ObjectModel
 @using Estiblazor.UI.Enums
 
-@inject IRoomTemplateService RoomTemplateService
+@inject IRoomCreationService RoomCreationService
 
 <div class="flex-wrapper">
     <div class="flex-header base">
         <h1>Room: </h1>
-        <InputText @bind-Value="Room.Name" class="form-control" placeholder="Room Name" />
 
         <InputSelect @bind-Value="selectedTemplate" @bind-Value:after="SetTemplate">
             <option selected value="">Select a template</option>
@@ -25,9 +24,9 @@
             <div class="add-stage-overview">
                 <h2>Stages</h2>
                 <div class="stages">
-                    @foreach (var stage in Room.EstimationStages)
+                    @foreach (var stage in RoomCreationService.GetStages())
                     {
-                        <div @onclick="() => SetSelectedStage(stage.Name)" class="stage @(stage.Name == selectedStage?.Name ? "selected" : "")">@stage.Name</div>
+                        <div @onclick="() => RoomCreationService.SetSelectedStage(stage.Key)" class="stage @(RoomCreationService.IsSelectedStage(stage.Key) ? "selected" : "")">@stage.Value</div>
                     }
                 </div>
  
@@ -40,19 +39,21 @@
        </div>
         <div class="choice-wrapper">
             <div class="choice-overview base">
-                @if (selectedStage != null)
+                @{
+                    var selectedStage1 = RoomCreationService.GetSelectedStage();
+                }
+                @if (selectedStage1 != null)
                 {
-                    <h3>@selectedStage?.Name Choices</h3>
-                    var stage = Room.EstimationStages.FirstOrDefault(s => s.Name == selectedStage?.Name);
+
+                    <h3>@selectedStage1.StageName Choices</h3>
 
                     <div class="choices">
-                        @if (stage != null)
+                        
+                        @foreach (var choice in selectedStage1.AvailableChoices)
                         {
-                            @foreach (var choice in stage.AvailableChoices)
-                            {
-                                <div class="choice" @onclick="() => RemoveAvailableChoice(choice)">@((MarkupString)choice)</div>
-                            }
+                            <div class="choice" @oncontextmenu="() => RoomCreationService.RemoveChoice(choice.ChoiceId)" @oncontextmenu:preventDefault="true">@((MarkupString)choice.ChoiceName)</div>
                         }
+                        
                     </div>
 
                 }
@@ -64,10 +65,11 @@
             </div>
             <div class="choice-input base">
                 <div> <InputText @bind-Value="NewChoiceName" class="form-control" placeholder="Choice name" /> </div>
-                <div> <a class="add-button" @onclick="AddAvailableChoice">Add Choice</a> </div>
+                <div class="button-wrapper">
+                    <div> <a class="add-button" @onclick="AddAvailableChoice">Add Choice</a> </div>
+                    <div> <a class="add-button" @onclick="RoomCreationService.CreateRoom">Create Room</a> </div>
+                </div>
             </div>
-
-
         </div>
    </div>
 
@@ -80,65 +82,30 @@
 
     public string? NewChoiceName { get; set; }
 
-    public RoomViewModel? Room { get; set; }
-
-    public EstimationStage? selectedStage { get; set; }
-
     public RoomTemplates? selectedTemplate { get; set; }
-
-    protected override void OnInitialized()
-    {
-        Room = new RoomViewModel()
-            {
-                EstimationStages = new ObservableCollection<EstimationStage>()
-            };
-        base.OnInitialized();
-    }
 
     public void AddStage()
     {
         if (!string.IsNullOrEmpty(NewStageName))
         {
-            var stage = new EstimationStage();
-            stage.Name = NewStageName;
-            NewStageName = string.Empty;
-
-            Room.EstimationStages.Add(stage);
-            StateHasChanged();
+            RoomCreationService.AddNewStage(NewStageName);
         }
-
-    }
-
-    public void SetSelectedStage(string stageName)
-    {
-        selectedStage = Room.EstimationStages.FirstOrDefault(s => s.Name == stageName);
     }
 
     public void AddAvailableChoice()
     {
-        if (selectedStage != null && !string.IsNullOrEmpty(NewChoiceName))
+        if (RoomCreationService.GetSelectedStage != null && !string.IsNullOrEmpty(NewChoiceName))
         {
-            selectedStage.AvailableChoices.Add(NewChoiceName);
+            RoomCreationService.AddNewChoice(NewChoiceName);
             NewChoiceName = string.Empty;
         }   
-    }
-
-    public void RemoveAvailableChoice(string choice)
-    {
-        if (selectedStage != null && !string.IsNullOrEmpty(choice))
-        {
-            selectedStage.AvailableChoices.Remove(choice);
-        }
     }
 
     public void SetTemplate()
     {
         if (selectedTemplate != null)
         {
-            var stages = RoomTemplateService.GetRoomTemplate(selectedTemplate.Value);
-
-            Room.EstimationStages = new ObservableCollection<EstimationStage>(stages);
+            RoomCreationService.SetRoomTemplate(selectedTemplate.Value);
         }
-        
     }
 }

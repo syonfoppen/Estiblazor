@@ -295,8 +295,16 @@ a {
                     }
                 }
             }
+
+            .choice-input{
+                .button-wrapper{
+                    display: flex;
+                    gap: 20px;
+                }
+            }
         }
-        .add-button{
+
+        .add-button {
             display: inline-block;
             padding: 5px 10px 5px 10px;
             background-color: #554994;

@@ -12,8 +12,8 @@ namespace Estiblazor.UI.Services.Rooms
         private ObservableCollection<UserChoice> userChoices = [];
         public ObservableCollection<UserChoice> UserChoices { get => userChoices; set => PropertyChange(ref userChoices, value); }
 
-        private ObservableCollection<string> availableChoices = [];
-        public ObservableCollection<string> AvailableChoices { get => availableChoices; set => PropertyChange(ref availableChoices, value); }
+        private string[] availableChoices = [];
+        public string[] AvailableChoices { get => availableChoices; set => PropertyChange(ref availableChoices, value); }
 
         public event EventHandler<ChoiceChangedEventArgs>? ChoiceChanged;
 
