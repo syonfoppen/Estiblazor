@@ -13,6 +13,6 @@ namespace Estiblazor.UI.Services.Rooms
         void RemoveChoice(Guid choiceId);
         bool IsSelectedStage(Guid stageId);
         void SetSelectedStage(Guid stageId);
-        void CreateRoom();
+        string CreateRoom();
     }
 }

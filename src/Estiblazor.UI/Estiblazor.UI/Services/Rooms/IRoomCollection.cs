@@ -8,5 +8,6 @@ namespace Estiblazor.UI.Services
         RoomViewModel GetOrCreateRoom(string roomid);
         RoomViewModel? GetExistingRoom(string roomId);
         List<string> GetRoomNames();
+        void AddNewRoom(RoomViewModel vm);
     }
 }

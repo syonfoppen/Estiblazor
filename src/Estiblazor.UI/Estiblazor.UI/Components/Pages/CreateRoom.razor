@@ -6,6 +6,7 @@
 @using Estiblazor.UI.Enums
 
 @inject IRoomCreationService RoomCreationService
+@inject NavigationManager nav
 
 <div class="flex-wrapper">
     <div class="flex-header base">
@@ -67,7 +68,7 @@
                 <div> <InputText @bind-Value="NewChoiceName" class="form-control" placeholder="Choice name" /> </div>
                 <div class="button-wrapper">
                     <div> <a class="add-button" @onclick="AddAvailableChoice">Add Choice</a> </div>
-                    <div> <a class="add-button" @onclick="RoomCreationService.CreateRoom">Create Room</a> </div>
+                    <div> <a class="add-button" @onclick="CreateRoomAndNavigate">Create Room</a> </div>
                 </div>
             </div>
         </div>
@@ -107,5 +108,11 @@
         {
             RoomCreationService.SetRoomTemplate(selectedTemplate.Value);
         }
+    }
+
+    public void CreateRoomAndNavigate()
+    {
+        var roomId = RoomCreationService.CreateRoom();
+        nav.NavigateTo($"/Rooms/{roomId}");
     }
 }

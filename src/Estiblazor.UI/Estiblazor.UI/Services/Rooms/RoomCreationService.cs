@@ -11,8 +11,9 @@ namespace Estiblazor.UI.Services.Rooms
         private readonly ICollection<NewStageModel> OneTillTen;
 
         private readonly ICollection<NewStageModel> LikeDislike;
+        private readonly IRoomCollection roomCollection;
 
-        public RoomCreationService()
+        public RoomCreationService(IRoomCollection roomCollection)
         {
             _newRoomModel = new NewRoomModel();
 
@@ -77,6 +78,7 @@ namespace Estiblazor.UI.Services.Rooms
                         new AddAvailableChoiceViewModel() { ChoiceName = "<i class=\"fa-solid fa-thumbs-down\"></i>" }]
                 }
             ];
+            this.roomCollection = roomCollection;
             #endregion
         }
 
@@ -170,10 +172,37 @@ namespace Estiblazor.UI.Services.Rooms
                     break;
             }
         }
-        public void CreateRoom()
+        public string CreateRoom()
         {
-            //TODO: @David: look together with @Syon how to implement this
-            throw new NotImplementedException();
+            string roomid = GetRandomRoomName();
+            while (roomCollection.GetExistingRoom(roomid) is not null)
+            {
+                roomid = GetRandomRoomName();
+            }
+
+            var stages = from stage in _newRoomModel.Stages
+                         select new EstimationStage
+                         {
+                             AvailableChoices = stage.AvailableChoices.Select(x => x.ChoiceName).ToArray(),
+                             IsRevealed = false,
+                             Name = stage.StageName,
+                         };
+
+            var vm = new RoomViewModel(stages)
+            {
+                Name = roomid,
+                Id = new RoomId(roomid),
+            };
+
+            roomCollection.AddNewRoom(vm);
+
+            return roomid;
+        }
+
+        private static string GetRandomRoomName()
+        {
+            var id = Random.Shared.Next(10000, 99999 + 1).ToString();
+            return id;
         }
     }
 }

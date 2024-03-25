@@ -9,11 +9,8 @@ namespace Estiblazor.UI.Services.Rooms
             this.memoryCache = memoryCache;
         }
 
-        private readonly HashSet<string> roomNames = new();
+        private readonly HashSet<string> roomNames = [];
 
-        private sealed record class RoomKey(string RoomId)
-        {
-        }
 
         public List<string> GetRoomNames() => roomNames.ToList();
 
@@ -21,38 +18,48 @@ namespace Estiblazor.UI.Services.Rooms
 
         RoomViewModel IRoomCollection.GetOrCreateRoom(string roomid)
         {
-            var vm = memoryCache.GetOrCreate(new RoomKey(roomid), cacheEntry =>
+            var vm = memoryCache.GetOrCreate(new RoomId(roomid), cacheEntry =>
             {
-                var vm = new RoomViewModel { Id = new RoomId(roomid), Name = roomid };
-                vm.EstimationStages.Add(new EstimationStage
-                {
-                    Name = "effort",
-                    AvailableChoices = ["0.5", "1", "2", "3", "5", "8", "13", "20", "<i class=\"fa-solid fa-infinity\"></i>"],
-                    IsRevealed = false,
-                    UserChoices = [],
-                });
-                vm.EstimationStages.Add(new EstimationStage
-                {
-                    Name = "complexity",
-                    AvailableChoices = ["S", "M", "L", "<i class=\"fa-solid fa-infinity\"></i>"],
-                    IsRevealed = false,
-                    UserChoices = []
-                });
-                vm.EstimationStages.Add(new EstimationStage
-                {
-                    Name = "Like",
-                    AvailableChoices = ["<i class=\"fa-solid fa-thumbs-up\"></i>", "<i class=\"fa-solid fa-thumbs-down\"></i>"],
-                    IsRevealed = false,
-                    UserChoices = []
+                List<EstimationStage> estimationStages =
+                [
+                    new EstimationStage
+                    {
+                        Name = "effort",
+                        AvailableChoices = ["0.5", "1", "2", "3", "5", "8", "13", "20", "<i class=\"fa-solid fa-infinity\"></i>"],
+                        IsRevealed = false,
+                        UserChoices = [],
+                    },
+                    new EstimationStage
+                    {
+                        Name = "complexity",
+                        AvailableChoices = ["S", "M", "L", "<i class=\"fa-solid fa-infinity\"></i>"],
+                        IsRevealed = false,
+                        UserChoices = []
+                    },
+                    new EstimationStage
+                    {
+                        Name = "Like",
+                        AvailableChoices = ["<i class=\"fa-solid fa-thumbs-up\"></i>", "<i class=\"fas fa-meh\"></i>", "<i class=\"fa-solid fa-thumbs-down\"></i>"],
+                        IsRevealed = false,
+                        UserChoices = []
 
-                });
+                    },
+                ];
+                var vm = new RoomViewModel(estimationStages) { Id = new RoomId(roomid), Name = roomid };
+
                 OnCreate(roomid);
-                cacheEntry.SlidingExpiration = TimeSpan.FromDays(7);
-                cacheEntry.RegisterPostEvictionCallback(OnEvict);
+                ConfigureCacheEntry(cacheEntry);
+
                 return vm;
             });
 
             return vm!;
+        }
+
+        private void ConfigureCacheEntry(ICacheEntry cacheEntry)
+        {
+            cacheEntry.SlidingExpiration = TimeSpan.FromDays(7);
+            cacheEntry.RegisterPostEvictionCallback(OnEvict);
         }
 
         private void OnCreate(string name)
@@ -69,12 +76,19 @@ namespace Estiblazor.UI.Services.Rooms
         }
 
         RoomViewModel? IRoomCollection.GetExistingRoom(string roomId)
-        {
-            var vm = memoryCache.Get<RoomViewModel>(new RoomKey(roomId));
+        {           
+            var vm = memoryCache.Get<RoomViewModel>(new RoomId(roomId));
 
             return vm;
         }
 
+        public void AddNewRoom(RoomViewModel vm)
+        {
+            using var entry = memoryCache.CreateEntry(new RoomId(vm.Id.Name));
+            entry.SetValue(vm);
+            OnCreate(vm.Id.Name);
+            ConfigureCacheEntry(entry);
+        }
     }
 
 }

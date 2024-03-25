@@ -4,7 +4,7 @@ using Estiblazor.UI.Services.Users;
 
 namespace Estiblazor.UI.Services.Rooms
 {
-    public class RoomViewModel : NotifiesPropertyChanged
+    public class RoomViewModel(IEnumerable<EstimationStage> estimationStages) : NotifiesPropertyChanged
     {
         private RoomId id = new RoomId(string.Empty);
         public RoomId Id { get => id; set => PropertyChange(ref id, value); }
@@ -19,12 +19,11 @@ namespace Estiblazor.UI.Services.Rooms
         private ObservableCollection<User> users = [];
         public ObservableCollection<User> Users { get => users; set => PropertyChange(ref users, value); }
 
-        public IEnumerable<IGrouping<UserId, UserChoice>> GetChoicesByUsers() => estimationStages.SelectMany(y => y.UserChoices).GroupBy(x => x.UserId);
+        public IEnumerable<IGrouping<UserId, UserChoice>> GetChoicesByUsers() => EstimationStages.SelectMany(y => y.UserChoices).GroupBy(x => x.UserId);
 
-        public IEnumerable<UserId> GetUserIds() => estimationStages.SelectMany(y => y.UserChoices).Select(x => x.UserId).Distinct();
+        public IEnumerable<UserId> GetUserIds() => EstimationStages.SelectMany(y => y.UserChoices).Select(x => x.UserId).Distinct();
 
-        private ObservableCollection<EstimationStage> estimationStages = [];
-        public ObservableCollection<EstimationStage> EstimationStages { get => estimationStages; set => PropertyChange(ref estimationStages, value); }
+        public IReadOnlyList<EstimationStage> EstimationStages { get; } = estimationStages.ToList().AsReadOnly();
 
         //users may be duplicated
         public void AddUser(User user)
