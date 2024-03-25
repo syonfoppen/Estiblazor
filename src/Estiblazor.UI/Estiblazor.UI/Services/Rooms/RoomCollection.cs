@@ -76,7 +76,7 @@ namespace Estiblazor.UI.Services.Rooms
         }
 
         RoomViewModel? IRoomCollection.GetExistingRoom(string roomId)
-        {           
+        {
             var vm = memoryCache.Get<RoomViewModel>(new RoomId(roomId));
 
             return vm;
