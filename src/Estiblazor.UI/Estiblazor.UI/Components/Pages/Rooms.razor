@@ -46,7 +46,7 @@
         </div>
 
 
-            @foreach (var user in Room.Users)
+            @foreach (var user in Room.Users.OrderBy(o => o.Name))
             {
                 <UserChoicesView @key=@user.Id RoomName="@Room.Name" UserId="@user.Id" />
             }

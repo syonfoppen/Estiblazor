@@ -1,0 +1,118 @@
+﻿@page "/createroom"
+@rendermode InteractiveServer
+
+@using Estiblazor.UI.Services.Rooms
+@using System.Collections.ObjectModel
+@using Estiblazor.UI.Enums
+
+@inject IRoomCreationService RoomCreationService
+@inject NavigationManager nav
+
+<div class="flex-wrapper">
+    <div class="flex-header base">
+        <h1>Room: </h1>
+
+        <InputSelect @bind-Value="selectedTemplate" @bind-Value:after="SetTemplate">
+            <option selected value="">Select a template</option>
+            @foreach (var template in Enum.GetValues(typeof(RoomTemplates)))
+            {
+                <option value="@template">@template?.ToString()?.Replace("_", " ")</option>
+            }
+        </InputSelect>
+   </div>
+    <div class="flex-middle">
+        <div class="add-stage-wrapper base">
+            <div class="add-stage-overview">
+                <h2>Stages</h2>
+                <div class="stages">
+                    @foreach (var stage in RoomCreationService.GetStages())
+                    {
+                        <div @onclick="() => RoomCreationService.SetSelectedStage(stage.Key)" class="stage @(RoomCreationService.IsSelectedStage(stage.Key) ? "selected" : "")">@stage.Value</div>
+                    }
+                </div>
+ 
+            </div>
+
+            <div class="add-stage-input">
+                <InputText @bind-Value="NewStageName" class="form-control" placeholder="Stage name" />
+                <a class="add-button" @onclick="AddStage">Add Stage</a>
+            </div>
+       </div>
+        <div class="choice-wrapper">
+            <div class="choice-overview base">
+                @{
+                    var selectedStage1 = RoomCreationService.GetSelectedStage();
+                }
+                @if (selectedStage1 != null)
+                {
+
+                    <h3>@selectedStage1.StageName Choices</h3>
+
+                    <div class="choices">
+                        
+                        @foreach (var choice in selectedStage1.AvailableChoices)
+                        {
+                            <div class="choice" @oncontextmenu="() => RoomCreationService.RemoveChoice(choice.ChoiceId)" @oncontextmenu:preventDefault="true">@((MarkupString)choice.ChoiceName)</div>
+                        }
+                        
+                    </div>
+
+                }
+                else
+                {
+                    <span>No stage selected</span>
+                }
+
+            </div>
+            <div class="choice-input base">
+                <div> <InputText @bind-Value="NewChoiceName" class="form-control" placeholder="Choice name" /> </div>
+                <div class="button-wrapper">
+                    <div> <a class="add-button" @onclick="AddAvailableChoice">Add Choice</a> </div>
+                    <div> <a class="add-button" @onclick="CreateRoomAndNavigate">Create Room</a> </div>
+                </div>
+            </div>
+        </div>
+   </div>
+
+</div>
+
+
+
+@code {
+    public string? NewStageName { get; set; }
+
+    public string? NewChoiceName { get; set; }
+
+    public RoomTemplates? selectedTemplate { get; set; }
+
+    public void AddStage()
+    {
+        if (!string.IsNullOrEmpty(NewStageName))
+        {
+            RoomCreationService.AddNewStage(NewStageName);
+        }
+    }
+
+    public void AddAvailableChoice()
+    {
+        if (RoomCreationService.GetSelectedStage != null && !string.IsNullOrEmpty(NewChoiceName))
+        {
+            RoomCreationService.AddNewChoice(NewChoiceName);
+            NewChoiceName = string.Empty;
+        }   
+    }
+
+    public void SetTemplate()
+    {
+        if (selectedTemplate != null)
+        {
+            RoomCreationService.SetRoomTemplate(selectedTemplate.Value);
+        }
+    }
+
+    public void CreateRoomAndNavigate()
+    {
+        var roomId = RoomCreationService.CreateRoom();
+        nav.NavigateTo($"/Rooms/{roomId}");
+    }
+}

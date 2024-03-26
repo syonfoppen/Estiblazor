@@ -28,7 +28,7 @@ namespace Estiblazor.UI.Services.Rooms
         public void Reset()
         {
             IsRevealed = false;
-            while(userChoices.Count > 0)
+            while (userChoices.Count > 0)
             {
                 RemoveChoice(userChoices[^1]);
             }

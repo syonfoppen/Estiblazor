@@ -20,6 +20,7 @@ namespace Estiblazor.UI
                 .AddHttpContextAccessor()
                 .AddSingleton<IRoomCollection, RoomCollection>()
                 .AddSingleton<IUserCollection, UserCollection>()
+                .AddScoped<IRoomCreationService, RoomCreationService>()
                 .AddScoped<IUserProvider, LocalStorageUserProvider>()
                 .AddScoped<IsOnlineThingy>()
                 .AddBlazoredLocalStorage()
