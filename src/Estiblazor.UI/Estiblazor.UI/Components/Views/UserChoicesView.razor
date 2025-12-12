@@ -1,18 +1,18 @@
-﻿@using Estiblazor.UI.Services
+@using Estiblazor.UI.Application.Rooms
 @using Estiblazor.UI.Services.Rooms
 @using Estiblazor.UI.Services.Users
 @using System.ComponentModel
 
 @rendermode InteractiveServer
 
-@inject IRoomCollection RoomCollection;
+@inject IRoomOrchestrationService RoomService;
 @implements IDisposable
 
 <div class="flex_row">
     <div class="flex_col user_name">
         <UserView UserId="@UserId" />
     </div>
-    
+
     @foreach (var stage in Room.EstimationStages)
     {
         var choice = stage.GetChoice(UserId);
@@ -35,7 +35,7 @@
 
     protected override void OnInitialized()
     {
-        Room = RoomCollection.GetOrCreateRoom(RoomName);
+        Room = RoomService.GetOrCreateRoom(RoomName);
         foreach (var stage in Room.EstimationStages)
         {
             stage.ChoiceChanged += OnChoiceChanged;

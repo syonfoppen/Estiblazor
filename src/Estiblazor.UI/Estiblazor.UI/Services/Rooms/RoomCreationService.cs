@@ -1,4 +1,6 @@
-﻿using Estiblazor.UI.Enums;
+using Estiblazor.UI.Application.Rooms;
+using Estiblazor.UI.Enums;
+using System.Linq;
 
 namespace Estiblazor.UI.Services.Rooms
 {
@@ -11,9 +13,9 @@ namespace Estiblazor.UI.Services.Rooms
         private readonly ICollection<NewStageModel> OneTillTen;
 
         private readonly ICollection<NewStageModel> LikeDislike;
-        private readonly IRoomCollection roomCollection;
+        private readonly IRoomOrchestrationService roomOrchestrationService;
 
-        public RoomCreationService(IRoomCollection roomCollection)
+        public RoomCreationService(IRoomOrchestrationService roomOrchestrationService)
         {
             _newRoomModel = new NewRoomModel();
 
@@ -78,7 +80,7 @@ namespace Estiblazor.UI.Services.Rooms
                         new AddAvailableChoiceViewModel() { ChoiceName = "<i class=\"fa-solid fa-thumbs-down\"></i>" }]
                 }
             ];
-            this.roomCollection = roomCollection;
+            this.roomOrchestrationService = roomOrchestrationService;
             #endregion
         }
 
@@ -174,35 +176,7 @@ namespace Estiblazor.UI.Services.Rooms
         }
         public string CreateRoom()
         {
-            string roomid = GetRandomRoomName();
-            while (roomCollection.GetExistingRoom(roomid) is not null)
-            {
-                roomid = GetRandomRoomName();
-            }
-
-            var stages = from stage in _newRoomModel.Stages
-                         select new EstimationStage
-                         {
-                             AvailableChoices = stage.AvailableChoices.Select(x => x.ChoiceName).ToArray(),
-                             IsRevealed = false,
-                             Name = stage.StageName,
-                         };
-
-            var vm = new RoomViewModel(stages)
-            {
-                Name = roomid,
-                Id = new RoomId(roomid),
-            };
-
-            roomCollection.AddNewRoom(vm);
-
-            return roomid;
-        }
-
-        private static string GetRandomRoomName()
-        {
-            var id = Random.Shared.Next(10000, 99999 + 1).ToString();
-            return id;
+            return roomOrchestrationService.CreateRoom(_newRoomModel.Stages);
         }
     }
 }

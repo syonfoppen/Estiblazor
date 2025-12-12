@@ -1,9 +1,9 @@
-﻿@using Estiblazor.UI.Services
+@using Estiblazor.UI.Application.Rooms
 @using Estiblazor.UI.Services.Rooms
 @using Estiblazor.UI.Services.Users
 @using System.ComponentModel
 @rendermode InteractiveServer
-@inject IRoomCollection roomCollection
+@inject IRoomOrchestrationService roomService
 @inject IUserProvider userProvider
 
 <h3>@(EstimationStage.Name)</h3>
@@ -17,11 +17,11 @@
         <a style="@(isChosen ? "border-style: solid; border-color: white" : "")"
            @onclick=@(() => OnChoice(choice))>
 
-            <div 
+            <div
                 class="estimate-option">
                 @((MarkupString)choice)               @if (isChosen)
                 {
-                   
+
             }
             </div>
         </a>
@@ -56,7 +56,7 @@
     public void OnChoice(string choice)
     {
         if (EstimationStage.IsRevealed) return;
-        EstimationStage.SetChoice(User.Id, choice);
+        roomService.SetChoice(EstimationRoom, EstimationIndex, User.Id, choice);
     }
 
     protected override void OnParametersSet()
@@ -66,7 +66,7 @@
 
     protected override void OnInitialized()
     {
-        EstimationStage = roomCollection.GetExistingRoom(EstimationRoom)?.EstimationStages[EstimationIndex]!;
+        EstimationStage = roomService.GetExistingRoom(EstimationRoom)?.EstimationStages[EstimationIndex]!;
         EstimationStage.PropertyChanged += AnythingChanged;
         EstimationStage.UserChoices.CollectionChanged += AnythingChanged;
         base.OnInitialized();

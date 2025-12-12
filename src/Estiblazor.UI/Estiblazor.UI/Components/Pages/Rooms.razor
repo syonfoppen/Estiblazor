@@ -1,6 +1,6 @@
 ﻿@page "/Rooms/{Name}"
 
-@using Estiblazor.UI.Services
+@using Estiblazor.UI.Application.Rooms
 @using Estiblazor.UI.Services.Rooms
 @using Estiblazor.UI.Services.Users
 @using System.ComponentModel
@@ -10,7 +10,7 @@
 
 @rendermode InteractiveServer
 
-@inject IRoomCollection RoomCollection;
+@inject IRoomOrchestrationService RoomService;
 @inject IUserCollection UserCollection;
 @inject IUserProvider userProvider;
 @inject IHttpContextAccessor hca;
@@ -66,7 +66,7 @@
 
     protected override void OnInitialized()
     {
-        this.Room = RoomCollection.GetOrCreateRoom(Name);
+        this.Room = RoomService.GetOrCreateRoom(Name);
         Room.PropertyChanged += Room_PropertyChanged;
         Room.Users.CollectionChanged += Room_PropertyChanged;
         base.OnInitialized();
@@ -93,19 +93,13 @@
 
     public async void OnReset()
     {
-        foreach (var stage in Room.EstimationStages)
-        {
-            stage.Reset();
-        }
+        RoomService.ResetAllStages(Room.Id.Name);
         await base.InvokeAsync(this.StateHasChanged);
     }
 
     public async void OnReveal()
     {
-        foreach (var stage in Room.EstimationStages)
-        {
-            stage.Reveal();
-        }
+        RoomService.RevealAllStages(Room.Id.Name);
         await base.InvokeAsync(this.StateHasChanged);
     }
 

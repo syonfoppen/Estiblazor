@@ -1,7 +1,10 @@
 using Blazored.LocalStorage;
+using Estiblazor.UI.Application.Rooms;
 using Estiblazor.UI.Components;
-using Estiblazor.UI.Services;
-using Estiblazor.UI.Services.Rooms;
+using Estiblazor.UI.Domain.Common;
+using Estiblazor.UI.Domain.Rooms;
+using Estiblazor.UI.Infrastructure.Messaging;
+using Estiblazor.UI.Infrastructure.Rooms;
 using Estiblazor.UI.Services.Users;
 
 namespace Estiblazor.UI
@@ -15,10 +18,11 @@ namespace Estiblazor.UI
 
             // Add services to the container.
             builder.Services
-                .AddSingleton<CounterService>()
                 .AddMemoryCache()
                 .AddHttpContextAccessor()
-                .AddSingleton<IRoomCollection, RoomCollection>()
+                .AddSingleton<IRoomRepository, InMemoryRoomRepository>()
+                .AddSingleton<IDomainEventDispatcher, DomainEventDispatcher>()
+                .AddSingleton<IRoomOrchestrationService, RoomOrchestrationService>()
                 .AddSingleton<IUserCollection, UserCollection>()
                 .AddScoped<IRoomCreationService, RoomCreationService>()
                 .AddScoped<IUserProvider, LocalStorageUserProvider>()
