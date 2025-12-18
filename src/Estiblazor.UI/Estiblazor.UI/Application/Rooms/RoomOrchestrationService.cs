@@ -6,6 +6,7 @@ using Estiblazor.UI.Services.Users;
 using System.Linq;
 using DomainEstimationStage = Estiblazor.UI.Domain.Rooms.EstimationStage;
 using ViewEstimationStage = Estiblazor.UI.Services.Rooms.EstimationStage;
+using System.Collections.Concurrent;
 
 namespace Estiblazor.UI.Application.Rooms;
 
@@ -13,12 +14,17 @@ public class RoomOrchestrationService : IRoomOrchestrationService
 {
     private readonly IRoomRepository _roomRepository;
     private readonly IDomainEventDispatcher _dispatcher;
-    private readonly Dictionary<string, RoomViewModel> _readModels = new();
+    private readonly IRoomEventBackplane _eventBackplane;
+    private readonly ConcurrentDictionary<string, RoomViewModel> _readModels = new();
+    private readonly Guid _instanceId = Guid.NewGuid();
 
-    public RoomOrchestrationService(IRoomRepository roomRepository, IDomainEventDispatcher dispatcher)
+    public RoomOrchestrationService(IRoomRepository roomRepository, IDomainEventDispatcher dispatcher, IRoomEventBackplane eventBackplane)
     {
         _roomRepository = roomRepository;
         _dispatcher = dispatcher;
+        _eventBackplane = eventBackplane;
+
+        _eventBackplane.Subscribe(OnBackplaneEventAsync);
     }
 
     public RoomViewModel GetOrCreateRoom(string roomId)
@@ -31,13 +37,7 @@ public class RoomOrchestrationService : IRoomOrchestrationService
             PublishAsync(room.Created());
         }
 
-        if (!_readModels.TryGetValue(roomId, out var readModel))
-        {
-            readModel = BuildReadModel(room);
-            _readModels[roomId] = readModel;
-        }
-
-        return readModel;
+        return _readModels.GetOrAdd(roomId, _ => BuildReadModel(room));
     }
 
     public RoomViewModel? GetExistingRoom(string roomId)
@@ -173,5 +173,116 @@ public class RoomOrchestrationService : IRoomOrchestrationService
     private void PublishAsync(IDomainEvent domainEvent)
     {
         _ = _dispatcher.PublishAsync(domainEvent);
+        _ = _eventBackplane.PublishAsync(domainEvent, _instanceId);
+    }
+
+    private Task OnBackplaneEventAsync(IDomainEvent domainEvent, Guid originId)
+    {
+        if (originId == _instanceId)
+        {
+            return Task.CompletedTask;
+        }
+
+        switch (domainEvent)
+        {
+            case RoomCreatedDomainEvent created:
+                HandleRoomCreated(created.RoomName);
+                break;
+            case RoomResetDomainEvent reset:
+                HandleReset(reset.RoomName);
+                break;
+            case RoomRevealedDomainEvent revealed:
+                HandleReveal(revealed.RoomName);
+                break;
+            case ChoiceChangedDomainEvent choiceChanged:
+                HandleChoiceChanged(choiceChanged);
+                break;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void HandleChoiceChanged(ChoiceChangedDomainEvent domainEvent)
+    {
+        if (!TryEnsureReadModel(domainEvent.RoomName, out var roomViewModel))
+        {
+            return;
+        }
+
+        var stage = roomViewModel.EstimationStages.FirstOrDefault(stage => stage.Name == domainEvent.StageName);
+        if (stage is null)
+        {
+            return;
+        }
+
+        if (domainEvent.Choice is null)
+        {
+            stage.RemoveChoice(domainEvent.UserId);
+        }
+        else
+        {
+            stage.SetChoice(domainEvent.UserId, domainEvent.Choice);
+        }
+    }
+
+    private void HandleRoomCreated(string roomName)
+    {
+        if (_readModels.ContainsKey(roomName))
+        {
+            return;
+        }
+
+        var room = _roomRepository.Get(roomName);
+        if (room is null)
+        {
+            return;
+        }
+
+        _readModels[roomName] = BuildReadModel(room);
+    }
+
+    private void HandleReset(string roomName)
+    {
+        if (!TryEnsureReadModel(roomName, out var roomViewModel))
+        {
+            return;
+        }
+
+        foreach (var stage in roomViewModel.EstimationStages)
+        {
+            stage.Reset();
+        }
+    }
+
+    private void HandleReveal(string roomName)
+    {
+        if (!TryEnsureReadModel(roomName, out var roomViewModel))
+        {
+            return;
+        }
+
+        foreach (var stage in roomViewModel.EstimationStages)
+        {
+            stage.Reveal();
+        }
+    }
+
+    private bool TryEnsureReadModel(string roomId, out RoomViewModel roomViewModel)
+    {
+        if (_readModels.TryGetValue(roomId, out roomViewModel!))
+        {
+            return true;
+        }
+
+        var room = _roomRepository.Get(roomId);
+        if (room is null)
+        {
+            roomViewModel = null!;
+            return false;
+        }
+
+        roomViewModel = BuildReadModel(room);
+        _readModels[roomId] = roomViewModel;
+        return true;
     }
 }

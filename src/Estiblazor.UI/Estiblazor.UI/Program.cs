@@ -6,6 +6,7 @@ using Estiblazor.UI.Domain.Rooms;
 using Estiblazor.UI.Infrastructure.Messaging;
 using Estiblazor.UI.Infrastructure.Rooms;
 using Estiblazor.UI.Services.Users;
+using StackExchange.Redis;
 
 namespace Estiblazor.UI
 {
@@ -17,11 +18,15 @@ namespace Estiblazor.UI
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+
             builder.Services
                 .AddMemoryCache()
                 .AddHttpContextAccessor()
-                .AddSingleton<IRoomRepository, InMemoryRoomRepository>()
+                .AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString))
+                .AddSingleton<IRoomRepository, RedisRoomRepository>()
                 .AddSingleton<IDomainEventDispatcher, DomainEventDispatcher>()
+                .AddSingleton<IRoomEventBackplane, RedisRoomEventBackplane>()
                 .AddSingleton<IRoomOrchestrationService, RoomOrchestrationService>()
                 .AddSingleton<IUserCollection, UserCollection>()
                 .AddScoped<IRoomCreationService, RoomCreationService>()
