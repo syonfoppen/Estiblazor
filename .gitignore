@@ -404,6 +404,7 @@ FodyWeavers.xsd
 artifacts/
 
 # Deployment configuration stays local; commit examples only.
+.env
 .env.*
 !.env.example
 !.env.production.example

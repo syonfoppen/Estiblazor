@@ -92,8 +92,10 @@ test('owner, guest, reveal, editor, errors and history pass accessibility checks
   const invite = await page.getByLabel('Invitation link', { exact: true }).inputValue();
   await page.getByRole('link', { name: 'Enter your room →' }).click(); await audit(page, 'owner-unjoined');
   await page.getByLabel('Display name', { exact: true }).fill('Alex'); await page.getByRole('button', { name: 'Join the room →' }).click();
+  await expect(page.getByRole('heading', { name: 'What do you think?', exact: true })).toBeFocused();
   const guestContext = await browser.newContext(); const guest = await guestContext.newPage(); await guest.goto(invite); await audit(guest, 'guest-unjoined');
   await guest.getByLabel('Display name', { exact: true }).fill('Guest'); await guest.getByRole('button', { name: 'Join the room →' }).click();
+  await expect(guest.getByRole('heading', { name: 'What do you think?', exact: true })).toBeFocused();
   await page.getByRole('group', { name: 'Effort voting cards' }).getByRole('button', { name: '3', exact: true }).click();
   await expect(page.locator('.sr-only[role="status"]')).toHaveText('Your vote was saved.');
   await audit(page, 'owner-voted'); await audit(guest, 'guest-private');

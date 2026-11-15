@@ -17,6 +17,15 @@ async function join(page, name = 'Alex') {
   await page.getByLabel('Display name', { exact: true }).fill(name);
   await page.getByRole('button', { name: 'Join the room →' }).click();
   await expect(page.getByRole('heading', { name: 'Take a seat.' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'What do you think?', exact: true })).toBeFocused();
+}
+async function remove(page) {
+  const confirmation = page.waitForEvent('dialog');
+  const click = page.getByRole('button', { name: 'Delete room', exact: true }).click();
+  const dialog = await confirmation;
+  await dialog.accept(); await click;
+  await expect(page).toHaveURL(new URL('/', page.url()).href);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Great work starts');
 }
 const effort = page => page.getByRole('group', { name: 'Effort voting cards', exact: true });
 
@@ -82,7 +91,7 @@ test('owner, same-name guests, tabs, recovery, immutable history and deletion', 
   await expect(page.locator('.person .online')).toHaveCount(3);
   await aContext.close();
   await expect(page.locator('.person .online')).toHaveCount(2, { timeout: 15000 });
-  recovery.once('dialog', d => d.accept()); await recovery.getByRole('button', { name: 'Delete room', exact: true }).click();
+  await remove(recovery);
   await expect(recovery).toHaveURL(/\/$/);
   await expect(b.getByRole('alert')).toContainText('Room not found');
   expect(errors).toEqual([]);
@@ -95,6 +104,7 @@ test('mobile editor safely renders custom text and supports phase and option ord
   await page.goto('/create');
   await page.getByLabel('Room name', { exact: true }).fill('Mobile room');
   await page.getByRole('combobox').selectOption({ label: 'Like / dislike' });
+  await expect(page.getByLabel('Phase name', { exact: true })).toHaveCount(1);
   await page.getByRole('button', { name: '+ Add phase', exact: true }).click();
   await page.getByLabel('Phase name', { exact: true }).nth(1).fill('Custom');
   await page.getByLabel('Phase 2 option 1', { exact: true }).fill('<script>alert(1)</script>');
@@ -112,7 +122,7 @@ test('mobile editor safely renders custom text and supports phase and option ord
   await page.getByRole('button', { name: 'Toggle light or dark theme' }).click();
   await page.screenshot({ path: 'test-results/room-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-  page.once('dialog', d => d.accept()); await page.getByRole('button', { name: 'Delete room', exact: true }).click();
+  await remove(page);
   await context.close();
 });
 
@@ -146,7 +156,7 @@ test('app and Redis restart preserve owner, configuration, current votes and his
   await expect(page.getByRole('alert')).toHaveCount(0);
   await effort(page).getByRole('button', { name: '13', exact: true }).click();
   await expect(effort(page).getByRole('button', { name: '13', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  page.once('dialog', d => d.accept()); await page.getByRole('button', { name: 'Delete room', exact: true }).click();
+  await remove(page);
 });
 
 test('template catalog creates independent drafts and supports an effort-and-risk room', async ({ page }) => {
@@ -173,5 +183,5 @@ test('template catalog creates independent drafts and supports an effort-and-ris
   await expect(page.locator('.person .badge')).toHaveText('2/2');
   await page.getByRole('button', { name: 'Reveal votes', exact: true }).click();
   await expect(page.locator('.result')).toHaveCount(2);
-  page.once('dialog', d => d.accept()); await page.getByRole('button', { name: 'Delete room', exact: true }).click();
+  await remove(page);
 });
