@@ -1,0 +1,10 @@
+# Public pages and assets may be crawled.
+# Room pages remain crawlable so search engines can read their noindex headers.
+User-agent: *
+Allow: /
+Disallow: /manage/
+Disallow: /join
+Disallow: /health
+Disallow: /_blazor
+
+# The application appends an absolute Sitemap URL for this installation.

@@ -26,7 +26,17 @@ test('public content, metadata, structured answers and join work without JavaScr
   await expect(page.getByRole('alert')).toContainText('Room not found');
   // Query parameters must not enter canonical discovery URLs.
   expect(await page.locator('link[rel="canonical"]').getAttribute('href')).not.toContain('?');
-  const robots = await (await request.get('/robots.txt')).text(); expect(robots).not.toContain('Disallow: /rooms/'); expect(robots).toContain('Disallow: /manage/');
+  const robotsResponse = await request.get('/robots.txt');
+  expect(robotsResponse.status()).toBe(200);
+  expect(robotsResponse.headers()['content-type']).toContain('text/plain');
+  const robots = await robotsResponse.text();
+  const rules = robots.split(/\r?\n/).filter(line => line && !line.startsWith('#'));
+  expect(rules).toContain('User-agent: *'); expect(rules).toContain('Allow: /');
+  for (const path of ['/manage/', '/join', '/health', '/_blazor']) expect(rules).toContain(`Disallow: ${path}`);
+  expect(rules).not.toContain('Disallow: /rooms/');
+  expect(rules.filter(line => line.startsWith('Sitemap: '))).toEqual([
+    `Sitemap: ${new URL('/sitemap.xml', await page.locator('link[rel="canonical"]').getAttribute('href')).href}`,
+  ]);
   const sitemap = await (await request.get('/sitemap.xml')).text(); expect(sitemap).toContain('/how-it-works'); expect(sitemap).not.toContain('/rooms/'); expect(sitemap).not.toContain('/manage/');
   const privateResponse = await request.get('/rooms/000000000000'); expect(privateResponse.headers()['x-robots-tag']).toContain('noindex'); expect(privateResponse.headers()['cache-control']).toContain('no-store');
   const svgHref = await page.locator('link[rel="icon"][type="image/svg+xml"]').getAttribute('href');

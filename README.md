@@ -163,7 +163,7 @@ Public pages render on the server without downloading Blazor. Interactive room p
 
 The accessibility target is WCAG 2.2 AA, with axe/keyboard/reflow/contrast checks in CI and a public `/accessibility` page. Full EAA compliance requires the operator's applicable legal assessment and a complete assistive-technology audit; automated scores alone are insufficient.
 
-Set `Site__PublicUrl` (Compose: `PUBLIC_URL`) to the canonical HTTPS origin and `Accessibility__ContactUrl` (Compose: `ACCESSIBILITY_CONTACT_URL`) to your monitored feedback channel. Public metadata, sitemap, visible answers and JSON-LD support discovery. Room responses carry `noindex`; private codes and management links are excluded from discovery metadata.
+Set `Site__PublicUrl` (Compose: `PUBLIC_URL`) to the canonical HTTPS origin and `Accessibility__ContactUrl` (Compose: `ACCESSIBILITY_CONTACT_URL`) to your monitored feedback channel. Public metadata, sitemap, visible answers and JSON-LD support discovery. Room responses carry `noindex`; private codes and management links are excluded from discovery metadata. The `/robots.txt` endpoint serves the editable [crawler rules](src/Estiblazor.UI/Estiblazor.UI/robots.txt) and appends an absolute sitemap URL using `Site__PublicUrl`.
 
 Run `npm run audit --prefix tests/browser` after the browser tests to generate mobile/desktop Lighthouse reports and enforce quality thresholds.
 

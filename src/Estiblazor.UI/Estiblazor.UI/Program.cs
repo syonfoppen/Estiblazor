@@ -106,8 +106,9 @@ app.MapGet("/join", async (HttpContext context, RoomService rooms) =>
         return Results.Redirect("/?error=" + Uri.EscapeDataString(ex.Message));
     }
 });
+var robotsRules = File.ReadAllText(Path.Combine(app.Environment.ContentRootPath, "robots.txt"));
 app.MapGet("/robots.txt", (HttpContext context, IConfiguration configuration) => Results.Text(
-    "User-agent: *\nAllow: /\nDisallow: /manage/\nDisallow: /join\nDisallow: /health\nDisallow: /_blazor\nSitemap: " + PublicOrigin(context, configuration) + "/sitemap.xml\n", "text/plain"));
+    robotsRules.TrimEnd() + "\nSitemap: " + PublicOrigin(context, configuration) + "/sitemap.xml\n", "text/plain"));
 app.MapGet("/sitemap.xml", (HttpContext context, IConfiguration configuration) =>
 {
     var origin = System.Security.SecurityElement.Escape(PublicOrigin(context, configuration));
