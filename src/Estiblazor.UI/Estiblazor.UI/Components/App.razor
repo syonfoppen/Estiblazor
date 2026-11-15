@@ -1,24 +1,31 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=0.5" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <base href="/" />
-    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="app.css" />
-    <link rel="stylesheet" href="Estiblazor.UI.styles.css" />
-    <link href="/fontawesome/css/fontawesome.css" rel="stylesheet" />
-    <link href="/fontawesome/css/brands.css" rel="stylesheet" />
-    <link href="/fontawesome/css/solid.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="icon" type="image/svg+xml" href="@Assets["favicon.svg"]" />
+    <link rel="icon" type="image/png" sizes="32x32" href="@Assets["favicon.png"]" />
+    <link rel="apple-touch-icon" sizes="180x180" href="@Assets["apple-touch-icon.png"]" />
+    <meta name="theme-color" content="#0b1426" />
+    <script src="@Assets["app.js"]"></script>
+    <HeadOutlet @rendermode="PageRenderMode" />
 </head>
-
 <body>
-    <Routes />
-    <script src="_framework/blazor.web.js"></script>
-</body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    @if (PageRenderMode != null)
+    {
+        <div id="blazor-error-ui" role="alert">The connection encountered an error. <a href="">Reload the page</a>.</div>
+        <div id="components-reconnect-modal" role="status" aria-live="polite"><p>Connection interrupted. Reconnecting…</p><p>Changes are available after reconnecting. <a href="">Reload</a></p></div>
 
+    }
+    <Routes @rendermode="PageRenderMode" />
+    @if (PageRenderMode != null) { <script src="_framework/blazor.web.js" defer></script> }
+</body>
 </html>
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    private IComponentRenderMode? PageRenderMode => HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+}

@@ -1,0 +1,43 @@
+name: Checks
+on:
+  push:
+  pull_request:
+  workflow_call:
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    services:
+      redis:
+        image: redis:7.4-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: dotnet restore src/Estiblazor.sln
+      - run: dotnet build src/Estiblazor.sln -c Release --no-restore
+      - run: dotnet test src/Estiblazor.sln -c Release --no-build --logger trx
+        env:
+          TEST_REDIS: localhost:6379
+      - run: docker build -f src/Dockerfile -t estiblazor:test .
+      - name: Browser and persistence checks
+        run: |
+          docker compose up -d --build --wait
+          npm ci --prefix tests/browser
+          npx --prefix tests/browser playwright install --with-deps chromium
+          npm test --prefix tests/browser
+          npm run audit --prefix tests/browser
+        env:
+          BASE_URL: http://localhost:8080
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/TestResults/*.trx
+            tests/browser/test-results

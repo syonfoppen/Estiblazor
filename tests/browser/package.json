@@ -1,0 +1,14 @@
+{
+  "name": "estiblazor-browser-tests",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "audit": "node audit.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "1.56.1",
+    "chrome-launcher": "^1.2.3",
+    "lighthouse": "^13.6.0"
+  }
+}

@@ -1,0 +1,30 @@
+@using System.Security.Claims
+@inject RoomService Rooms
+@if (error != null) {
+    <section class="notice" aria-label="Recent rooms"><h2>Your rooms</h2><p role="status">@error</p><a href="/">Reload your room list</a></section>
+} else if (!rooms.IsEmpty) {
+    <section class="recent-rooms" aria-labelledby="recent-title"><p class="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2 id="recent-title">Your rooms &amp; recent visits</h2><p class="subtle">Saved for this browser identity. Up to 50 owned rooms and 20 recent visits.</p>
+        @foreach (var owned in new[] { true, false }) {
+            var group = rooms.Where(r => r.IsOwner == owned).ToArray();
+            @if (group.Length > 0) {
+                <h3>@(owned ? "Your rooms" : "Recently visited")</h3><ul class="room-list">
+                @foreach (var room in group) { <li class="surface"><a href="@($"/rooms/{room.Code}")" rel="nofollow"><strong>@room.Name</strong><span class="subtle">@room.Code</span></a><span class="badge">@(owned ? "Owner" : "Visited")</span><a href="@($"/create?from={room.Code}")" rel="nofollow">Duplicate room</a></li> }
+                </ul>
+            }
+        }
+    </section>
+}
+@code {
+    [CascadingParameter] public HttpContext? HttpContext { get; set; }
+    ImmutableArray<RecentRoom> rooms = [];
+    string? error;
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Guid.TryParse(HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier), out var user)) return;
+        try {
+            rooms = await Rooms.RecentAsync(user);
+            if (!rooms.IsEmpty && HttpContext != null && !HttpContext.Response.HasStarted)
+                HttpContext.Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
+        } catch (Exception ex) when (ex is RoomException or StorageUnavailableException) { error = "Your recent rooms are temporarily unavailable. You can still use an invitation link or try again later."; }
+    }
+}

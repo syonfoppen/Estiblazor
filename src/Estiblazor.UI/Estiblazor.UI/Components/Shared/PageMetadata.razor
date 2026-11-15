@@ -1,0 +1,27 @@
+@inject NavigationManager Navigation
+@inject IConfiguration Configuration
+<HeadContent>
+    <meta name="description" content="@Description" />
+    <meta name="robots" content="@(Private ? "noindex, nofollow, noarchive" : "index, follow")" />
+    @if (!Private)
+    {
+        <link rel="canonical" href="@Canonical" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Estiblazor" />
+        <meta property="og:title" content="@Title" />
+        <meta property="og:description" content="@Description" />
+        <meta property="og:url" content="@Canonical" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="@Title" />
+        <meta name="twitter:description" content="@Description" />
+    }
+    @ChildContent
+</HeadContent>
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "Estiblazor · Free online planning poker";
+    [Parameter] public string Path { get; set; } = "/";
+    [Parameter] public bool Private { get; set; }
+    string Canonical => (Configuration["Site:PublicUrl"] ?? Navigation.BaseUri).TrimEnd('/') + Path;
+}

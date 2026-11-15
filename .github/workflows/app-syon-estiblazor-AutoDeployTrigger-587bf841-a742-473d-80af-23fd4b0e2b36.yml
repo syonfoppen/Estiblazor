@@ -1,47 +1,51 @@
-name: Trigger auto deployment for app-syon-estiblazor
-
-# When this action will be executed
+name: Deploy to Azure (manual)
 on:
-  # Automatically trigger it when detected changes in repo
-  push:
-    branches: 
-      [ main ]
-    paths:
-    - 'src/Estiblazor.UI/Estiblazor.UI/**'
-    - '.github/workflows/app-syon-estiblazor-AutoDeployTrigger-587bf841-a742-473d-80af-23fd4b0e2b36.yml'
-
-  # Allow manual trigger 
-  workflow_dispatch:      
-
+  workflow_dispatch:
 jobs:
-  build-and-deploy:
+  checks:
+    uses: ./.github/workflows/ci.yml
+  deploy:
+    needs: checks
     runs-on: ubuntu-latest
-    permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
-
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
     steps:
-      - name: Checkout to the branch
-        uses: actions/checkout@v2
-
-      - name: Azure Login
-        uses: azure/login@v1
+      - uses: actions/checkout@v4
+      - name: Require explicit production configuration
+        env:
+          REDIS: ${{ secrets.ESTIBLAZOR_REDIS }}
+          KEYS: ${{ vars.ESTIBLAZOR_KEYS_PATH }}
+          PUBLIC_URL: ${{ vars.ESTIBLAZOR_PUBLIC_URL }}
+        run: |
+          test -n "$REDIS" || { echo "Configure ESTIBLAZOR_REDIS first"; exit 1; }
+          test -n "$PUBLIC_URL" || { echo "Configure ESTIBLAZOR_PUBLIC_URL to the canonical HTTPS origin first"; exit 1; }
+          test -n "$KEYS" || { echo "Configure ESTIBLAZOR_KEYS_PATH on a persistent mounted volume first"; exit 1; }
+      - uses: azure/login@v2
         with:
           client-id: ${{ secrets.APPSYONESTIBLAZOR_AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.APPSYONESTIBLAZOR_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.APPSYONESTIBLAZOR_AZURE_SUBSCRIPTION_ID }}
-
-      - name: Build and push container image to registry
-        uses: azure/container-apps-deploy-action@v2
+      - name: Configure existing app for persistent rooms
+        env:
+          REDIS: ${{ secrets.ESTIBLAZOR_REDIS }}
+          KEYS: ${{ vars.ESTIBLAZOR_KEYS_PATH }}
+        run: |
+          MOUNTS=$(az containerapp show --name app-syon-estiblazor --resource-group rg-syon-estiblazor --query 'properties.template.containers[].volumeMounts[].mountPath' -o tsv)
+          echo "$MOUNTS" | grep -Fx -- "$KEYS" >/dev/null || { echo "Persistent key mount is missing"; exit 1; }
+          az containerapp secret set --name app-syon-estiblazor --resource-group rg-syon-estiblazor --secrets "estiblazor-redis=$REDIS" --output none
+          az containerapp update --name app-syon-estiblazor --resource-group rg-syon-estiblazor --min-replicas 1 --max-replicas 1 --output none
+      - uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}/src
+          appSourcePath: ${{ github.workspace }}
+          dockerfilePath: src/Dockerfile
           registryUrl: registry-1.docker.io
           registryUsername: ${{ secrets.APPSYONESTIBLAZOR_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.APPSYONESTIBLAZOR_REGISTRY_PASSWORD }}
           containerAppName: app-syon-estiblazor
           resourceGroup: rg-syon-estiblazor
-          imageToBuild: registry-1.docker.io/syonfoppen02/estiblazorui:latest
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
-
-
+          imageToBuild: registry-1.docker.io/syonfoppen02/estiblazorui:${{ github.sha }}
+          environmentVariables: ConnectionStrings__Redis=secretref:estiblazor-redis DataProtection__KeysPath=${{ vars.ESTIBLAZOR_KEYS_PATH }} Cookies__Secure=true Site__PublicUrl=${{ vars.ESTIBLAZOR_PUBLIC_URL }} Accessibility__ContactUrl=${{ vars.ESTIBLAZOR_ACCESSIBILITY_CONTACT || 'https://github.com/syonfoppen/Estiblazor/issues/new' }}
+      - name: Enforce one replica
+        run: az containerapp update --name app-syon-estiblazor --resource-group rg-syon-estiblazor --min-replicas 1 --max-replicas 1

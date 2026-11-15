@@ -1,6 +1,8 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+@inject NavigationManager Navigation
+<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        <NavigationFocus Path="@Navigation.Uri" />
     </Found>
+    <NotFound><LayoutView Layout="typeof(Layout.MainLayout)"><h1>Page not found</h1><a href="/">Back to home</a></LayoutView></NotFound>
 </Router>

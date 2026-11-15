@@ -1,118 +1,42 @@
-﻿@page "/createroom"
-@rendermode InteractiveServer
-
-@using Estiblazor.UI.Services.Rooms
-@using System.Collections.ObjectModel
-@using Estiblazor.UI.Enums
-
-@inject IRoomCreationService RoomCreationService
-@inject NavigationManager nav
-
-<div class="flex-wrapper">
-    <div class="flex-header base">
-        <h1>Room: </h1>
-
-        <InputSelect @bind-Value="selectedTemplate" @bind-Value:after="SetTemplate">
-            <option selected value="">Select a template</option>
-            @foreach (var template in Enum.GetValues(typeof(RoomTemplates)))
-            {
-                <option value="@template">@template?.ToString()?.Replace("_", " ")</option>
-            }
-        </InputSelect>
-   </div>
-    <div class="flex-middle">
-        <div class="add-stage-wrapper base">
-            <div class="add-stage-overview">
-                <h2>Stages</h2>
-                <div class="stages">
-                    @foreach (var stage in RoomCreationService.GetStages())
-                    {
-                        <div @onclick="() => RoomCreationService.SetSelectedStage(stage.Key)" class="stage @(RoomCreationService.IsSelectedStage(stage.Key) ? "selected" : "")">@stage.Value</div>
-                    }
-                </div>
- 
-            </div>
-
-            <div class="add-stage-input">
-                <InputText @bind-Value="NewStageName" class="form-control" placeholder="Stage name" />
-                <a class="add-button" @onclick="AddStage">Add Stage</a>
-            </div>
-       </div>
-        <div class="choice-wrapper">
-            <div class="choice-overview base">
-                @{
-                    var selectedStage1 = RoomCreationService.GetSelectedStage();
-                }
-                @if (selectedStage1 != null)
-                {
-
-                    <h3>@selectedStage1.StageName Choices</h3>
-
-                    <div class="choices">
-                        
-                        @foreach (var choice in selectedStage1.AvailableChoices)
-                        {
-                            <div class="choice" @oncontextmenu="() => RoomCreationService.RemoveChoice(choice.ChoiceId)" @oncontextmenu:preventDefault="true">@((MarkupString)choice.ChoiceName)</div>
-                        }
-                        
-                    </div>
-
-                }
-                else
-                {
-                    <span>No stage selected</span>
-                }
-
-            </div>
-            <div class="choice-input base">
-                <div> <InputText @bind-Value="NewChoiceName" class="form-control" placeholder="Choice name" /> </div>
-                <div class="button-wrapper">
-                    <div> <a class="add-button" @onclick="AddAvailableChoice">Add Choice</a> </div>
-                    <div> <a class="add-button" @onclick="CreateRoomAndNavigate">Create Room</a> </div>
-                </div>
-            </div>
-        </div>
-   </div>
-
-</div>
-
-
-
+@inject IConfiguration Settings
+@page "/create"
+@inject RoomService Rooms
+@inject IBrowserSession Session
+@inject NavigationManager Navigation
+<PageTitle>Create a planning poker room · Estiblazor</PageTitle>
+<PageMetadata Path="/create" Title="Create a planning poker room · Estiblazor" Description="Create a free planning poker room with custom phases and voting cards. Start from a template and invite your team. No account required." Private="@(created != null || !string.IsNullOrEmpty(From))" />
+@if (created == null) {
+    <div class="page-heading"><p class="eyebrow">A SPACE FOR YOUR TEAM</p><h1>Make room for good ideas.</h1><p>Choose your deck. Invite your people. Start a conversation.</p></div>
+    <form class="surface" @onsubmit="Create" @onsubmit:preventDefault>
+        @if (loading) { <p role="status">Loading room configuration…</p> }
+        else if (loadError != null) { <p class="error" role="alert">@loadError</p><a href="/create">Start with a fresh deck</a> }
+        else { <Estiblazor.UI.Components.Shared.RoomEditor @ref="editor" @key="loadedSource" Initial="initial" /> }
+        @if (error != null) { <p class="error" role="alert">@error</p> }
+        <div class="form-actions"><a href="/">Cancel</a><button class="button primary" disabled="@(busy || !RendererInfo.IsInteractive || loading || loadError != null)">@(busy ? "Creating…" : "Create room ↗")</button></div>
+    </form>
+} else {
+    <section class="surface success"><p class="eyebrow">YOU'RE ALL SET</p><h1 tabindex="-1" @ref="successHeading">Your room is ready.</h1><p>Invite your team using this link.</p><label for="created-invite">Invitation link</label><input id="created-invite" readonly value="@Invite" />
+    <div class="notice"><h2>Keep your management link private</h2><p>Save it now. It restores owner access on another browser or device. Anyone with this link can manage and delete your room.</p><label for="created-management">Secret management link</label><input id="created-management" readonly value="@Management" /><p class="subtle">This secret is shown only here. It cannot be retrieved later.</p></div>
+    <InvitePanel Code="@created.Code" Url="@Invite" />
+    <a class="button primary" href="@($"/rooms/{created.Code}")">Enter your room →</a></section>
+}
 @code {
-    public string? NewStageName { get; set; }
-
-    public string? NewChoiceName { get; set; }
-
-    public RoomTemplates? selectedTemplate { get; set; }
-
-    public void AddStage()
+    [SupplyParameterFromQuery(Name = "from")] public string? From { get; set; }
+    Estiblazor.Domain.Configuration initial = Estiblazor.Domain.Configuration.Template("Planning poker"); bool loading; string? loadError; string? loadedSource;
+    protected override async Task OnParametersSetAsync()
     {
-        if (!string.IsNullOrEmpty(NewStageName))
-        {
-            RoomCreationService.AddNewStage(NewStageName);
-        }
+        if (From == loadedSource) return;
+        loadedSource = From; created = null; error = null; loadError = null;
+        if (string.IsNullOrWhiteSpace(From)) { initial = Estiblazor.Domain.Configuration.Template("Planning poker"); return; }
+        loading = true; loadError = null;
+        try { initial = await Rooms.CopyConfigurationAsync(From); }
+        catch (Exception ex) when (ex is RoomException or StorageUnavailableException) { loadError = ex.Message; }
+        finally { loading = false; }
     }
-
-    public void AddAvailableChoice()
-    {
-        if (RoomCreationService.GetSelectedStage != null && !string.IsNullOrEmpty(NewChoiceName))
-        {
-            RoomCreationService.AddNewChoice(NewChoiceName);
-            NewChoiceName = string.Empty;
-        }   
-    }
-
-    public void SetTemplate()
-    {
-        if (selectedTemplate != null)
-        {
-            RoomCreationService.SetRoomTemplate(selectedTemplate.Value);
-        }
-    }
-
-    public void CreateRoomAndNavigate()
-    {
-        var roomId = RoomCreationService.CreateRoom();
-        nav.NavigateTo($"/Rooms/{roomId}");
-    }
+    ElementReference successHeading; bool focusSuccess; Shared.RoomEditor? editor; CreatedRoom? created; string? error; bool busy;
+    string PublicBase => (Settings["Site:PublicUrl"] ?? Navigation.BaseUri).TrimEnd('/') + "/";
+    string Invite => PublicBase + "rooms/" + created!.Code;
+    string Management => PublicBase + "manage/" + created!.Code + "?secret=" + created.ManagementSecret;
+    async Task Create() { busy = true; error = null; try { created = await Rooms.CreateAsync(await Session.GetUserIdAsync(), editor!.GetConfiguration()); focusSuccess = true; } catch (Exception ex) when (ex is RoomException or StorageUnavailableException) { error = ex.Message; } finally { busy = false; } }
+    protected override async Task OnAfterRenderAsync(bool firstRender) { if (focusSuccess) { focusSuccess = false; await successHeading.FocusAsync(); } }
 }
