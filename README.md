@@ -36,7 +36,7 @@ Choose from **12 templates**: Planning poker (the default), Fibonacci, Modified 
 
 Each template is copied into an editable draft. Loading a template replaces draft cards and keeps the room name. Edit phases/options freely; existing rooms and round history keep their saved decks. Owner changes in an existing room take effect in the next round.
 
-The public [how-to guide](https://estiblazor.nl/how-it-works) lists the built-in catalog and card values.
+The public [how-to guide](http://localhost:8080/how-it-works) lists the built-in catalog and card values.
 
 ## Solution
 
@@ -103,26 +103,26 @@ npm test --prefix tests/browser
 
 Set `BASE_URL` to override `http://localhost:8080`. These tests **restart the local Compose app and Redis**, briefly stop Redis, and delete the rooms they create. Run against a dedicated local stack. Tests cover independent same-name guests, owner permissions, multiple tabs, management recovery, reconnect/reload, safe custom text, mobile ordering, vote withdrawal, history and persistence. They also verify browser-private room lists, short visits, independent duplicate decks, owner-guided phases, observers, frozen distributions, co-owner grants, secure transfer and QR rendering. Screenshots and failure traces are written under `tests/browser/test-results`. On an unsupported newer Ubuntu host use `PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64` for install and test, or set `CHROMIUM_PATH` to a compatible installed browser.
 
-CI builds and tests the entire solution with Redis, builds the runtime image, and runs the Compose browser/restart checks. The Azure workflow is **manual**, depends on the same checks, requires a `production` environment, an explicit Redis secret and persistent key mount, and enforces exactly one replica. It does not provision infrastructure. Configure `ESTIBLAZOR_REDIS`, the existing registry/Azure credentials and `ESTIBLAZOR_KEYS_PATH` plus `ESTIBLAZOR_PUBLIC_URL` before invoking it. Optionally set `ESTIBLAZOR_ACCESSIBILITY_CONTACT` to your monitored feedback URL. Configure environment approval rules in GitHub if required by your deployment process.
+CI builds and tests the entire solution with Redis, builds the runtime image, and runs the Compose browser, restart and Lighthouse checks.
 
-## Production behind Cloudflare Tunnel
+## Self-hosting
 
-[estiblazor.nl](https://estiblazor.nl) runs from this repository's source using `compose.production.yaml`. This standalone file publishes no host ports. The app joins the external `cloudflare` network as `estiblazor`, while Redis stays on a private internal network. Redis data and browser keys persist in named volumes. Secure cookies are enabled and forwarded HTTPS information is accepted only from the configured network.
+Estiblazor can run on any host with Docker and Compose. Build the app from the repository using `compose.yaml`, and place an HTTPS reverse proxy in front of the loopback-bound app port (`127.0.0.1:8080` by default). Redis stays private to the Compose network.
 
-```sh
-cp .env.production.example .env
-# Set PUBLIC_HOST and CLOUDFLARE_SUBNET to your actual hostname and Docker subnet.
-docker network inspect cloudflare
-docker compose -f compose.production.yaml config --quiet
-docker compose -f compose.production.yaml up -d --build
-curl --fail https://estiblazor.nl/health
+Set `PUBLIC_URL` in your local `.env` file to your public HTTPS origin, such as `https://poker.example.com`. Set `ACCESSIBILITY_CONTACT_URL` to a monitored feedback URL or email address. Enable secure cookies with a local `compose.override.yaml`:
+
+```yaml
+services:
+  app:
+    environment:
+      Cookies__Secure: "true"
 ```
 
-Cloudflared must also join `cloudflare`; persist that external network in its own Compose file. Its public hostname route is `http://estiblazor:8080`. Neither Redis nor the app needs a public host port. Do not enable multiple app replicas.
+Compose loads this override automatically when running `docker compose up -d --build`. The local HTTP configuration deliberately uses non-Secure cookies; the override is required when publishing behind HTTPS.
 
-On the OVH host, `/srv/ovh-migration/staged/estiblazor/compose.yaml` includes `repository/compose.production.yaml`. The `repository` directory is a Git checkout of `feature/persistent-rooms-net10`, and `repository/.env` holds production configuration. After updating the source, rebuild from the parent directory with `sudo docker compose up -d --build`; inspect with `sudo docker compose ps` and `sudo docker compose logs --tail 100 app`. Fetch and fast-forward the checked-out branch before rebuilding; keep `.env` unchanged. Updating GitHub does not automatically deploy this host.
+Configure your reverse proxy to support WebSockets for interactive rooms and preserve the original Host header. If it forwards the HTTPS scheme, set `ReverseProxy__KnownNetwork` on the app to the proxy's actual source network in CIDR notation. Trust only the proxy network. Use the configuration table above when supplying environment variables outside Compose.
 
-The previous Compose files are retained in the server's `backups/` directory, and the old stopped .NET 8 container is named `estiblazor-v8-rollback`. It cannot read the new Redis room format. Never use `--remove-orphans` if you want to preserve that container. Use the backup procedure below for both new volumes; production commands must select the production Compose file or run from the server's parent deployment directory. Never use `down -v` on production.
+Keep exactly one app instance and preserve both the Redis and browser-key volumes across updates. Verify `/health`, room creation, voting and owner access through your public URL. Use `docker compose logs --tail 100 app` to inspect app logs. To update, fetch the desired repository version and run `docker compose up -d --build` again, keeping your local configuration and persistent volumes.
 
 ## Durability, backup and restore
 
@@ -155,7 +155,7 @@ docker compose up -d --wait
 
 Verify `/health`, an existing room's configuration/history/current votes and owner access in an existing browser. Test restores periodically. Preserve archive numeric ownership so the runtime `app` user can read its key ring. `docker compose down` preserves named volumes; `docker compose down -v` permanently deletes rooms and browser keys.
 
-This version does not include accounts, backlogs, final estimates, exports, personal templates, multiple app replicas or a migration for old in-memory rooms. Those rooms never existed in repository storage. The production deployment uses Docker Compose behind Cloudflare Tunnel; no Azure infrastructure was provisioned.
+This version does not include accounts, backlogs, final estimates, exports, personal templates, multiple app replicas or a migration for old in-memory rooms. Those rooms never existed in repository storage.
 
 ## Performance, accessibility, SEO and AEO
 
