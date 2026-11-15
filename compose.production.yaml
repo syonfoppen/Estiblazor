@@ -1,0 +1,57 @@
+name: estiblazor
+services:
+  app:
+    image: estiblazor-local:${RELEASE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: src/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      AllowedHosts: ${PUBLIC_HOST:-estiblazor.nl}
+      ConnectionStrings__Redis: redis:6379
+      DataProtection__KeysPath: /data/keys
+      Site__PublicUrl: https://${PUBLIC_HOST:-estiblazor.nl}
+      Accessibility__ContactUrl: ${ACCESSIBILITY_CONTACT_URL:-https://github.com/syonfoppen/Estiblazor/issues/new}
+      Cookies__Secure: "true"
+      ReverseProxy__KnownNetwork: ${CLOUDFLARE_SUBNET:?Set the subnet of the existing cloudflare Docker network}
+    volumes:
+      - browser-keys:/data/keys
+    networks:
+      default:
+      cloudflare:
+        aliases: [estiblazor]
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
+  redis:
+    image: redis:7.4-alpine
+    command: [redis-server, --appendonly, "yes", --appendfsync, everysec, --maxmemory-policy, noeviction]
+    volumes:
+      - redis-data:/data
+    networks: [default]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
+networks:
+  default:
+    internal: true
+  cloudflare:
+    external: true
+    name: ${CLOUDFLARE_NETWORK:-cloudflare}
+volumes:
+  redis-data:
+  browser-keys:

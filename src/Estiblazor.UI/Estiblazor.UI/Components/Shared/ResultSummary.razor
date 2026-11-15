@@ -1,0 +1,12 @@
+<section class="results" aria-label="@($"{Name} results")">
+    <p class="result-overview"><strong>@Result.VotesCast/@Result.EligibleVoters voted</strong><span>@(Result.EligibleVoters - Result.VotesCast) not voted</span><span class="badge">@(Result.HasDifferences ? "Different cards — discuss the assumptions" : Result.VotesCast > 0 ? "One card chosen" : "No votes")</span></p>
+    @foreach (var option in Result.Distribution) {
+        <div class="result"><strong>@option.Option</strong><span>@string.Join(", ", option.Voters.Select(p => p.Name + " (" + p.Id.ToString()[..6] + ")"))</span><span class="badge">@option.Count @(option.Count == 1 ? "vote" : "votes")</span></div>
+        <div class="result-track" aria-hidden="true"><span style="@($"width:{(int)Math.Round(option.Count * 100.0 / Math.Max(1, Result.EligibleVoters))}%")"></span></div>
+    }
+    @if (Result.VotesCast == 0) { <p>No votes were cast in this phase.</p> }
+</section>
+@code {
+    [Parameter, EditorRequired] public PhaseResult Result { get; set; } = default!;
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+}

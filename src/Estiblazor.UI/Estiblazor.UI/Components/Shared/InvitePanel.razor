@@ -1,0 +1,19 @@
+@using QRCoder
+@using System.Text
+<section class="notice invite-panel" aria-label="Room invitation">
+    <div><h2>Invite your team</h2><p>Scan the QR code or share this invitation link. It grants participant access, never owner access.</p><label for="@($"invite-{Code}")">Room invitation link</label><input id="@($"invite-{Code}")" readonly value="@Url" /><a href="@Url">Open invitation</a></div>
+    <figure><img src="@qr" width="220" height="220" alt="@($"QR invitation to room {Code}. The same link is available alongside.")" /><figcaption class="subtle">Scan with your phone camera.</figcaption></figure>
+</section>
+@code {
+    [Parameter, EditorRequired] public string Code { get; set; } = "";
+    [Parameter, EditorRequired] public string Url { get; set; } = "";
+    string qr = ""; string previous = "";
+    protected override void OnParametersSet()
+    {
+        if (Url == previous) return;
+        previous = Url;
+        using var data = QRCodeGenerator.GenerateQrCode(Url, QRCodeGenerator.ECCLevel.Q);
+        using var renderer = new SvgQRCode(data);
+        qr = "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(renderer.GetGraphic(4, "#000000", "#ffffff", drawQuietZones: true)));
+    }
+}

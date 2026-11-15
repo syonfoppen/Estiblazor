@@ -1,0 +1,34 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: src/Dockerfile
+    ports:
+      - "127.0.0.1:${PORT:-8080}:8080"
+    environment:
+      ConnectionStrings__Redis: redis:6379
+      DataProtection__KeysPath: /data/keys
+      Site__PublicUrl: ${PUBLIC_URL:-http://localhost:${PORT:-8080}}
+      Accessibility__ContactUrl: ${ACCESSIBILITY_CONTACT_URL:-https://github.com/syonfoppen/Estiblazor/issues/new}
+      # Local HTTP only. Production HTTPS must use true.
+      Cookies__Secure: "false"
+    volumes:
+      - browser-keys:/data/keys
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+volumes:
+  redis-data:
+  browser-keys:

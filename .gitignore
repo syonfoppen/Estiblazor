@@ -396,3 +396,14 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Test tooling and generated verification output
+**/node_modules/
+**/test-results/
+**/playwright-report/
+artifacts/
+
+# Deployment configuration stays local; commit examples only.
+.env.*
+!.env.example
+!.env.production.example

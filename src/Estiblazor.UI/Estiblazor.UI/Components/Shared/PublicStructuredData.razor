@@ -1,0 +1,13 @@
+@using System.Text.Json
+@inject NavigationManager Navigation
+@inject IConfiguration Configuration
+<script type="application/ld+json">@((MarkupString)JsonSerializer.Serialize(Schema))</script>
+@code {
+    object Schema => new Dictionary<string, object> {
+        ["@context"] = "https://schema.org",
+        ["@graph"] = new object[] {
+            new Dictionary<string, object> { ["@type"] = "WebApplication", ["name"] = "Estiblazor", ["url"] = (Configuration["Site:PublicUrl"] ?? Navigation.BaseUri).TrimEnd('/') + "/", ["description"] = "Free online planning poker for teams, with custom voting cards, private votes and round history.", ["applicationCategory"] = "BusinessApplication", ["operatingSystem"] = "Web", ["isAccessibleForFree"] = true, ["inLanguage"] = "en" },
+            new Dictionary<string, object> { ["@type"] = "FAQPage", ["mainEntity"] = PublicContent.Faqs.Select(f => new Dictionary<string, object> { ["@type"] = "Question", ["name"] = f.Question, ["acceptedAnswer"] = new Dictionary<string, object> { ["@type"] = "Answer", ["text"] = f.Answer } }).ToArray() }
+        }
+    };
+}

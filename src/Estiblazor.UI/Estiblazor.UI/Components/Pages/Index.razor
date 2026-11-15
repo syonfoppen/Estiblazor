@@ -1,106 +1,17 @@
-﻿@page "/"
-@using Estiblazor.UI.Services.Users
-@using Blazored.LocalStorage
-@inject NavigationManager nav
-@inject IUserProvider userProvider
-
-@rendermode InteractiveServer
-
-
-<div class="login_wrapper">
-    <div class="login_screen">
-        <h1>Estiblazor</h1>
-        <div class="error_message">
-            @Message
-        </div>
-
-        <div class="form-group">
-            @if (Loading)
-            {
-                <div class="loader"></div>
-            }
-            else
-            {
-                @if (ShowUsernameField)
-                {
-                    <InputText @bind-Value=UserName class="form-control" onkeydown=s placeholder="Username" />
-                }
-                else
-                {
-                    <h4>Logged in as @UserName</h4>
-                }
-
-                <InputText @bind-Value=RoomName id="inputroom" class="form-control" placeholder="Room Code" />
-            }
-
-            
-        </div>
-        <div class="buttons">
-            <a class="button login" @onclick="Login">GO Estiblazor</a>
-
-            @if (!ShowUsernameField)
-            {
-                <a class="button login" @onclick="Logout">Logout</a>
-            }
-            
-        </div>
-
-    </div>
-
-</div>
-
-@code{
-    public string? Message { get; set; }
-
-    public string? UserName { get; set; }
-
-    [SupplyParameterFromQuery]
-    public string? RoomName { get; set; }
-
-    public bool Loading { get; set; }
-
-    public bool ShowUsernameField { get; set; }
-
-    protected override void OnInitialized()
-    {
-        ShowUsernameField = true;
-        Loading = true;
-        base.OnInitialized();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (Loading is false) return;
-        var user = await userProvider.GetUserAsync();
-        if (user is not null)
-        {
-            UserName = user.Name;
-            ShowUsernameField = false;
-        }
-
-        Loading = false;
-        StateHasChanged();
-    }
-
-    void Login()
-    {
-        if ((ShowUsernameField && UserName is null) || RoomName is null)
-        {
-            Message = "Please fill in a username and a room code!";
-            return;
-        }
-        if (ShowUsernameField)
-        {
-            userProvider.InitUser(new UserId(UserName));
-        }
-
-        nav.NavigateTo($"/Rooms/{RoomName}");
-    }
-
-    async void Logout()
-    {
-        await userProvider.LogoutAsync();
-        nav.NavigateTo(nav.Uri, true);
-    }
-
+@page "/"
+@attribute [ExcludeFromInteractiveRouting]
+<PageTitle>Free planning poker for teams · Estiblazor</PageTitle>
+<PageMetadata Path="/" Description="Free online planning poker for agile teams. Create a custom room, invite your team, vote privately and keep round history. No account required."><PublicStructuredData /></PageMetadata>
+<section class="hero"><div><p class="eyebrow">A LITTLE CLARITY FOR YOUR NEXT SPRINT</p><h1>Great work starts<br />with a shared <em>estimate.</em></h1><p class="lede">Bring your team together, turn over your cards, and make room for the conversation that matters.</p><a class="button primary" href="/create">Create a room <span>↗</span></a><p class="subtle">No accounts. Just your team and a deck of cards.</p></div><div class="hero-art" aria-hidden="true"><span class="orbit"></span><div class="demo-card card-back">EB</div><div class="demo-card card-five">5<span>EFFORT</span></div><div class="demo-card card-eight">8<span>EFFORT</span></div><span class="art-caption">Different perspectives. One team.</span></div></section>
+<RecentRooms />
+<section class="join-panel"><div><span class="eyebrow">ALREADY HAVE AN INVITE?</span><h2>Your team is waiting.</h2><p>Enter a room code or paste an invitation link.</p></div><form action="/join" method="get"><label for="room-code">Room code or invitation link</label><div class="inline"><input id="room-code" name="code" maxlength="2048" placeholder="e.g. A1B2C3D4E5F6" required /><button class="button primary" >Join room →</button></div></form></section>
+@if (error != null) { <p class="error" role="alert">@error</p> }
+<section class="features"><article><span class="step">01 / MAKE IT YOURS</span><h3>Your room, your rules.</h3><p>Start with a familiar deck or create phases and options that fit your team.</p></article><article><span class="step">02 / THINK INDEPENDENTLY</span><h3>Every voice counts.</h3><p>Votes stay private until the owner reveals them. No following the loudest voice.</p></article><article><span class="step">03 / KEEP THE CONTEXT</span><h3>A little history helps.</h3><p>Return to past rounds, with the votes and settings exactly as they were.</p></article></section>
+<section class="faq-section" aria-labelledby="faq-title"><p class="eyebrow">A FEW HELPFUL ANSWERS</p><h2 id="faq-title">Planning poker, without the setup.</h2><p>Estiblazor is a free online planning poker tool for teams estimating work together. It supports custom voting phases, private votes and saved round history without requiring accounts.</p>
+@foreach (var item in PublicContent.Faqs) { <details class="surface"><summary>@item.Question</summary><p>@item.Answer</p></details> }
+<p><a href="/how-it-works">Learn how to run a planning poker session</a></p></section>
+@code {
+    [SupplyParameterFromQuery(Name = "error")] public string? IncomingError { get; set; }
+    string? error;
+    protected override void OnParametersSet() => error = IncomingError;
 }

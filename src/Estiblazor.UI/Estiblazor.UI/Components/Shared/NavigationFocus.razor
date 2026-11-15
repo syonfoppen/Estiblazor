@@ -1,0 +1,17 @@
+@inject IJSRuntime JS
+@code {
+    [Parameter, EditorRequired] public string Path { get; set; } = "";
+    string? previousPath;
+    bool focus;
+    protected override void OnParametersSet()
+    {
+        var current = new Uri(Path).AbsolutePath;
+        focus = previousPath != null && previousPath != current;
+        previousPath = current;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Initial hydration must not steal focus from a person already typing.
+        if (focus) { focus = false; await JS.InvokeVoidAsync("estiblazor.focus", "main-content"); }
+    }
+}

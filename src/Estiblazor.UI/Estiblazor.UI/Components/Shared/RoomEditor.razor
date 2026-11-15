@@ -1,0 +1,74 @@
+@inject IJSRuntime JS
+<fieldset class="editor" disabled="@(!RendererInfo.IsInteractive)" aria-label="Room configuration">
+@if (errors.Count > 0) {
+    <div class="error" role="alert" tabindex="-1" @ref="errorSummary"><h2>Check your room settings</h2><ul>@foreach (var error in errors) { <li id="@(error.Key + "-error")"><a href="@("#" + error.Key)" @onclick:preventDefault @onclick="() => FocusField(error.Key)">@error.Value</a></li> }</ul></div>
+}
+<label for="room-name">Room name</label><input id="room-name" @bind="name" maxlength="100" required aria-invalid="@Invalid("room-name")" aria-describedby="@Description("room-name", "room-name-hint")" />
+<p id="room-name-hint" class="subtle">Required. Use 1–100 characters.</p>
+<p class="sr-only" role="status" aria-live="polite">@announcement</p>
+<div class="section-heading"><div><h2>Build your deck</h2><p>Each phase gets its own set of voting options.</p></div><label>Start from a template <select @onchange="UseTemplate" aria-describedby="template-description"><option value="">Choose template…</option>@foreach (var template in RoomTemplates.All) { <option value="@template.Name">@template.Name</option> }</select></label></div>
+<p id="template-description" class="subtle" role="status">@templateDescription</p>
+@for (var i = 0; i < phases.Count; i++) {
+    var index = i; var phase = phases[i];
+    <section class="phase-editor" @key="phase">
+        <div class="phase-top"><span class="step">PHASE @(i + 1)</span><div class="inline"><button type="button" class="quiet" disabled="@(i == 0)" @onclick="() => Move(index, -1)" aria-label="Move phase up">↑</button><button type="button" class="quiet" disabled="@(i == phases.Count - 1)" @onclick="() => Move(index, 1)" aria-label="Move phase down">↓</button><button type="button" class="quiet danger" @onclick="() => RemovePhase(index)">Remove phase</button></div></div>
+        <label for="@($"phase-{i}")">Phase name</label><input id="@($"phase-{i}")" @bind="phase.Name" maxlength="50" required aria-invalid="@Invalid($"phase-{i}")" aria-describedby="@Description($"phase-{i}")" />
+        <p id="@($"options-hint-{i}")" class="field-label">Voting options <span class="subtle">2–30 unique options. Use the arrow buttons to reorder.</span></p>
+        <div class="option-editor" role="group" aria-labelledby="@($"options-hint-{i}")">@for (var j = 0; j < phase.Options.Count; j++) { var optionIndex = j;
+            <div class="option-row"><input id="@($"option-{i}-{j}")" aria-invalid="@Invalid($"option-{i}-{j}")" aria-describedby="@Description($"option-{i}-{j}", $"options-hint-{i}")" aria-label="@($"Phase {i + 1} option {j + 1}")" @bind="phase.Options[optionIndex]" maxlength="30" required /><button type="button" class="quiet" disabled="@(j == 0)" @onclick="() => MoveOption(phase, optionIndex, -1)" aria-label="Move option left">←</button><button type="button" class="quiet" disabled="@(j == phase.Options.Count - 1)" @onclick="() => MoveOption(phase, optionIndex, 1)" aria-label="Move option right">→</button><button type="button" class="quiet danger" @onclick="() => RemoveOption(phase, optionIndex)" aria-label="Remove option">×</button></div>
+        }</div><button type="button" id="@($"add-option-{i}")" class="button secondary small" disabled="@(phase.Options.Count >= 30)" @onclick="() => AddOption(phase)">+ Add option</button>
+    </section>
+}
+<button id="add-phase" type="button" class="button secondary" disabled="@(phases.Count >= 10)" @onclick="AddPhase">+ Add phase</button>
+</fieldset>
+@code {
+    [Parameter, EditorRequired] public Configuration Initial { get; set; } = Configuration.Template("Planning poker");
+    Dictionary<string, string> errors = []; ElementReference errorSummary; bool focusErrors;
+    string templateDescription = "Templates are copied into your draft. You can change any phase or option without changing the original template.";
+    string announcement = ""; string name = ""; List<DraftPhase> phases = [];
+    protected override void OnInitialized() => Load(Initial);
+    void Load(Configuration c) { errors.Clear(); name = c.Name; phases = c.Phases.Select(p => new DraftPhase { Name = p.Name, Options = p.Options.ToList() }).ToList(); }
+    void UseTemplate(ChangeEventArgs e)
+    {
+        var template = RoomTemplates.All.FirstOrDefault(t => t.Name == e.Value?.ToString());
+        if (template == null) return;
+        var oldName = name;
+        Load(Configuration.Template(template.Name));
+        name = oldName;
+        templateDescription = template.Description + " This replaces the current draft deck. Your room name is kept.";
+        announcement = $"{template.Name} loaded with {phases.Count} phases. Edit the copied cards below.";
+    }
+    void Move(int index, int direction) { errors.Clear(); var phase = phases[index]; phases.RemoveAt(index); phases.Insert(index + direction, phase); announcement = $"{phase.Name} moved to phase {index + direction + 1}."; }
+    void MoveOption(DraftPhase phase, int index, int direction) { errors.Clear(); var value = phase.Options[index]; phase.Options.RemoveAt(index); phase.Options.Insert(index + direction, value); announcement = $"Option moved to position {index + direction + 1}."; }
+    void RemovePhase(int index) { errors.Clear(); phases.RemoveAt(index); announcement = "Phase removed."; }
+    void RemoveOption(DraftPhase phase, int index) { errors.Clear(); phase.Options.RemoveAt(index); announcement = "Option removed."; }
+    async Task FocusField(string id) => await JS.InvokeVoidAsync("estiblazor.focus", id);
+    void AddPhase() { errors.Clear(); phases.Add(new DraftPhase { Name = "New phase", Options = ["Yes", "No"] }); announcement = "Phase added."; }
+    void AddOption(DraftPhase phase) { errors.Clear(); phase.Options.Add(""); announcement = "Option added. Enter its label."; }
+    string Invalid(string id) => errors.ContainsKey(id) ? "true" : "false";
+    string? Description(string id, string? hint = null) => errors.ContainsKey(id) ? $"{hint} {id}-error".Trim() : hint;
+    protected override async Task OnAfterRenderAsync(bool firstRender) { if (focusErrors) { focusErrors = false; await errorSummary.FocusAsync(); } }
+    public Configuration GetConfiguration()
+    {
+        errors.Clear();
+        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 100) errors["room-name"] = "Room name: enter 1–100 characters.";
+        if (phases.Count is < 1 or > 10) errors["add-phase"] = "Include 1–10 phases.";
+        for (var i = 0; i < phases.Count; i++)
+        {
+            var phase = phases[i];
+            if (string.IsNullOrWhiteSpace(phase.Name) || phase.Name.Trim().Length > 50) errors[$"phase-{i}"] = $"Phase {i + 1}: enter a name of 1–50 characters.";
+            if (phase.Options.Count is < 2 or > 30) errors[$"add-option-{i}"] = $"Phase {i + 1}: include 2–30 options.";
+            for (var j = 0; j < phase.Options.Count; j++)
+            {
+                var value = phase.Options[j].Trim();
+                if (value.Length is < 1 or > 30) errors[$"option-{i}-{j}"] = $"Phase {i + 1}, option {j + 1}: enter 1–30 characters.";
+                else if (phase.Options.Count(o => string.Equals(o.Trim(), value, StringComparison.OrdinalIgnoreCase)) > 1)
+                    errors[$"option-{i}-{j}"] = $"Phase {i + 1}, option {j + 1}: use a unique label.";
+            }
+        }
+        if (errors.Count > 0) { focusErrors = true; StateHasChanged(); throw new RoomException("Check the room settings listed in the error summary."); }
+        // This is input guidance; the application still validates independently on the server.
+        return new(name, phases.Select(p => new Phase(p.Name, p.Options.ToImmutableArray())).ToImmutableArray());
+    }
+    sealed class DraftPhase { public string Name { get; set; } = ""; public List<string> Options { get; set; } = []; }
+}
