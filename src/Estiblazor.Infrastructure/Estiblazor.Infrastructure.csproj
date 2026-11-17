@@ -1,1 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><ProjectReference Include="../Estiblazor.Domain/Estiblazor.Domain.csproj" /><ProjectReference Include="../Estiblazor.Application/Estiblazor.Application.csproj" /><PackageReference Include="StackExchange.Redis" Version="2.13.17" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Estiblazor.Domain/Estiblazor.Domain.csproj" /><ProjectReference Include="../Estiblazor.Application/Estiblazor.Application.csproj" /><PackageReference
+      Include="StackExchange.Redis"
+      Version="2.13.17"
+    />
+  </ItemGroup>
+</Project>

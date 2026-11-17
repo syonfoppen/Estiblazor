@@ -1,1 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><ProjectReference Include="../Estiblazor.Domain/Estiblazor.Domain.csproj" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Estiblazor.Domain/Estiblazor.Domain.csproj" />
+  </ItemGroup>
+</Project>
