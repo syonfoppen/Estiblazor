@@ -1,1 +1,3 @@
-<Project Sdk="Microsoft.NET.Sdk"><ItemGroup></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup></ItemGroup>
+</Project>
